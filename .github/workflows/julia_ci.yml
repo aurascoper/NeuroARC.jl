@@ -1,0 +1,48 @@
+name: Julia CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: julia-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Julia ${{ matrix.version }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        version:
+          - "1.10"
+          - "1.11"
+        os:
+          - ubuntu-latest
+          - macOS-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Julia
+        uses: julia-actions/setup-julia@v2
+        with:
+          version: ${{ matrix.version }}
+
+      - name: Cache Julia dependencies
+        uses: julia-actions/cache@v2
+
+      - name: Run package test suite
+        run: |
+          julia --project=. -e 'using Pkg; Pkg.test()'
+
+      - name: Audit repository text cleanliness
+        run: |
+          python3 test/check_text_clean.py .

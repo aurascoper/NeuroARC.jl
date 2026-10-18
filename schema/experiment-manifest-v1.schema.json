@@ -1,0 +1,177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neuroarc.org/schemas/experiment-manifest-v1.schema.json",
+  "title": "Tri-Domain Experiment Manifest",
+  "description": "Standardized manifest specification for 5-arm experimental evaluations across ARC, Multi-Omics, and Prebiotic RNA domains.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "experiment_id",
+    "domain",
+    "feasibility_gates",
+    "matched_resource_budget",
+    "arms",
+    "metrics"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "experiment_id": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9_-]+$"
+    },
+    "domain": {
+      "type": "string",
+      "enum": [
+        "arc_neuroarc",
+        "modern_multi_omics",
+        "prebiotic_rna_world"
+      ]
+    },
+    "description": {
+      "type": "string"
+    },
+    "feasibility_gates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "license_compliant",
+        "provenance_verified",
+        "budget_constrained",
+        "decontamination_audit_passed"
+      ],
+      "properties": {
+        "license_compliant": {
+          "type": "boolean",
+          "description": "Must be true: ensures BSL 1.1 quarantine and OSI-approved compliance."
+        },
+        "provenance_verified": {
+          "type": "boolean",
+          "description": "Must be true: confirms deterministic random seed and checkpoint hashes."
+        },
+        "budget_constrained": {
+          "type": "boolean",
+          "description": "Must be true: hard ceilings enforced on compute and memory."
+        },
+        "decontamination_audit_passed": {
+          "type": "boolean",
+          "description": "Must be true: verifies synthetic training exposure isolation."
+        }
+      }
+    },
+    "matched_resource_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "total_compute_seconds",
+        "max_memory_mb"
+      ],
+      "properties": {
+        "total_compute_seconds": {
+          "type": "number",
+          "minimum": 0.0
+        },
+        "max_memory_mb": {
+          "type": "number",
+          "minimum": 0.0
+        },
+        "quota_units": {
+          "type": "string"
+        }
+      }
+    },
+    "arms": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arm_a",
+        "arm_b",
+        "arm_c",
+        "arm_d",
+        "arm_e"
+      ],
+      "properties": {
+        "arm_a": {
+          "$ref": "#/$defs/arm_spec"
+        },
+        "arm_b": {
+          "$ref": "#/$defs/arm_spec"
+        },
+        "arm_c": {
+          "$ref": "#/$defs/arm_spec"
+        },
+        "arm_d": {
+          "$ref": "#/$defs/arm_spec"
+        },
+        "arm_e": {
+          "$ref": "#/$defs/arm_spec"
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "primary_metric_name",
+        "direction",
+        "target_baseline"
+      ],
+      "properties": {
+        "primary_metric_name": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["maximize", "minimize"]
+        },
+        "unit": {
+          "type": "string"
+        },
+        "target_baseline": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "arm_spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "arm_name",
+        "regime_type",
+        "description",
+        "budget_fraction"
+      ],
+      "properties": {
+        "arm_name": {
+          "type": "string"
+        },
+        "regime_type": {
+          "type": "string",
+          "enum": [
+            "isolation_subsystem_1",
+            "isolation_subsystem_2",
+            "decoupled_combination",
+            "coupled_mutualism",
+            "adaptive_scaffolding"
+          ]
+        },
+        "description": {
+          "type": "string"
+        },
+        "budget_fraction": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
+        "parameters": {
+          "type": "object"
+        }
+      }
+    }
+  }
+}

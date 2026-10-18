@@ -1,0 +1,22 @@
+\section{Discussion, Competition Governance, and Repository Lifecycle}
+
+A central operational question addressed in this milestone is the release cadence for \texttt{NeuroARC.jl}: specifically, whether the codebase should be published immediately to an open repository.
+
+\subsection{Rationale for Initial Private Repository Status}
+We conclude that \texttt{NeuroARC.jl} must be initialized and maintained as a private repository prior to broader public release, driven by three strategic constraints:
+
+\begin{enumerate}
+  \item \textbf{Audit and Specification Invariants}: The anti-solipsism framework, the deterministic verifier threat model, and the GLMM calibration protocol are currently held at specification status pending formal independent review. Releasing provisional thresholds and telemetry schemas prematurely exposes work before formal audit gates close.
+  \item \textbf{Kaggle ARC-AGI-2 Competition Governance}: The active competition cycle imposes strict requirements on candidate generators, decontaminated DSL primitive libraries (comprising 557 verified operators), and reflexive recurrence modules. Maintaining private status protects submission provenance, prevents licensing ambiguities, and prevents accidental data contamination.
+  \item \textbf{Upstream Git Read-Only Boundary}: Upstream modules in \texttt{arc-agi-2-cpu-kaggle-modules} remain strictly read-only. Decoupling the cross-language memory boundary between Python and Julia must precede any public interface exposure.
+\end{enumerate}
+
+\subsection{Prerequisites for Public Release}
+The transition from private to public repository status is scheduled upon completion of three verifiable gates:
+\begin{enumerate}
+  \item Formal completion of the Donald Hoffman outreach cycle on the six-page foundational draft.
+  \item Execution and cryptographic sealing of the Revision 3 anti-solipsism audit gates and telemetry logs (\texttt{task\_audit\_table.parquet}).
+  \item Freezing and public evaluation of the final Kaggle competition submission notebook.
+\end{enumerate}
+
+Maintaining an internal private repository provides immediate benefits, including immutable Git commit hashes for academic citations (Paper B), secure continuous integration, and reproducible version control without compromising governance invariants.

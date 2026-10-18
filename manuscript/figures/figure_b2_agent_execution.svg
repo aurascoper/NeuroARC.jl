@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 720" width="100%" height="100%">
+  <defs>
+    <style>
+      .bg { fill: #0f172a; }
+      .layer-py { fill: #0f172a; stroke: #0284c7; stroke-width: 1.8; stroke-dasharray: 6,4; rx: 10; }
+      .layer-ffi { fill: #0f172a; stroke: #d97706; stroke-width: 1.8; stroke-dasharray: 6,4; rx: 10; }
+      .layer-mem { fill: #0f172a; stroke: #3b82f6; stroke-width: 2.0; rx: 10; }
+      .layer-jl { fill: #0f172a; stroke: #22c55e; stroke-width: 2.0; rx: 10; }
+      .box-py { fill: #1e293b; stroke: #38bdf8; stroke-width: 1.5; rx: 8; }
+      .box-ffi { fill: #27272a; stroke: #f59e0b; stroke-width: 1.8; rx: 8; }
+      .box-mem { fill: #1e293b; stroke: #60a5fa; stroke-width: 1.8; rx: 8; }
+      .box-acc { fill: #064e3b; stroke: #34d399; stroke-width: 1.8; rx: 8; }
+      .box-rej { fill: #450a0a; stroke: #f87171; stroke-width: 1.8; rx: 8; }
+      .box-inc { fill: #422006; stroke: #fbbf24; stroke-width: 1.8; rx: 8; }
+      .box-jl { fill: #14532d; stroke: #4ade80; stroke-width: 1.8; rx: 8; }
+      .box-status { fill: #1e293b; stroke: #94a3b8; stroke-width: 1.8; rx: 8; }
+      .title { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #f8fafc; }
+      .subtitle { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 12px; fill: #94a3b8; }
+      .layer-hdr { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; fill: #f8fafc; }
+      .box-hdr { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 12px; font-weight: 700; fill: #f8fafc; }
+      .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10px; fill: #cbd5e1; }
+      .tag-prop { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10px; font-weight: 700; fill: #fbbf24; }
+      .tag-ok { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10px; font-weight: 700; fill: #4ade80; }
+      .tag-err { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10px; font-weight: 700; fill: #f87171; }
+      .arrow-blue { stroke: #38bdf8; stroke-width: 1.8; fill: none; marker-end: url(#arrBlue); }
+      .arrow-amber { stroke: #f59e0b; stroke-width: 1.8; fill: none; marker-end: url(#arrAmber); }
+      .arrow-green { stroke: #22c55e; stroke-width: 2.2; fill: none; marker-end: url(#arrGreen); }
+      .arrow-red { stroke: #ef4444; stroke-width: 1.8; stroke-dasharray: 6,4; fill: none; marker-end: url(#arrRed); }
+    </style>
+    <marker id="arrBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/>
+    </marker>
+    <marker id="arrAmber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b"/>
+    </marker>
+    <marker id="arrGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#22c55e"/>
+    </marker>
+    <marker id="arrRed" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444"/>
+    </marker>
+  </defs>
+
+  <rect width="1120" height="720" class="bg"/>
+
+  <!-- Header -->
+  <text x="30" y="34" class="title">Figure B2: NeuroARC Agent Execution and Verification Architecture</text>
+  <text x="30" y="54" class="subtitle">Separating Proposed Architecture, Implementation Contracts, and Auditable Completion Criteria (No Unproved Zero-Copy or Convergence Claims)</text>
+
+  <!-- Layer 1: Presynaptic Layer -->
+  <rect x="30" y="74" width="1060" height="112" class="layer-py"/>
+  <text x="48" y="96" class="layer-hdr">1. Presynaptic Candidate Layer (Python Search Controller &amp; Rule Proposer)</text>
+
+  <rect x="48" y="108" width="440" height="64" class="box-py"/>
+  <text x="64" y="128" class="box-hdr">Search Strategy State Machine</text>
+  <text x="64" y="145" class="mono">Mode transitions: Focus -&gt; Frustration -&gt; Panic</text>
+  <text x="64" y="160" class="mono">Updates search operator weights from typed rejection reasons</text>
+
+  <rect x="550" y="108" width="510" height="64" class="box-py"/>
+  <text x="566" y="128" class="box-hdr">Candidate Transformation &amp; Grid Proposer</text>
+  <text x="566" y="145" class="mono">Emits candidate rule specification + demonstration predictions</text>
+  <text x="566" y="160" class="tag-prop">[PROPOSED ARCHITECTURE: Heuristic Candidate Generation]</text>
+
+  <line x1="488" y1="140" x2="542" y2="140" class="arrow-blue"/>
+
+  <!-- Layer 2: Cross-Language Transport Boundary -->
+  <rect x="30" y="206" width="1060" height="96" class="layer-ffi"/>
+  <text x="48" y="228" class="layer-hdr">2. Cross-Language Data Exchange Boundary (Python &lt;-&gt; Julia)</text>
+
+  <rect x="180" y="238" width="760" height="52" class="box-ffi"/>
+  <text x="200" y="258" class="box-hdr">Proposed shared-buffer interface</text>
+  <text x="200" y="276" class="mono">Passes candidate array descriptors across language boundary (allocation, ownership, and concurrency tests required before zero-copy claims)</text>
+
+  <line x1="805" y1="172" x2="805" y2="232" class="arrow-amber"/>
+
+  <!-- Layer 3: Criterial Verification Membrane -->
+  <rect x="30" y="322" width="1060" height="186" class="layer-mem"/>
+  <text x="48" y="344" class="layer-hdr">3. Criterial Verification Membrane (Deterministic Gate Prior to Pipeline Integration)</text>
+
+  <rect x="180" y="356" width="760" height="56" class="box-mem"/>
+  <text x="200" y="376" class="box-hdr">Independent validation suite</text>
+  <text x="200" y="394" class="mono">Predicates: (1) 100% exact demonstration reconstruction, (2) grid bounds 1..30 &amp; palette 0..9, (3) structural invariant checks</text>
+
+  <line x1="560" y1="290" x2="560" y2="350" class="arrow-blue"/>
+
+  <!-- Three Typed Verdict Boxes -->
+  <rect x="48" y="430" width="320" height="64" class="box-rej"/>
+  <text x="64" y="450" class="box-hdr">Rejected(reason, detail)</text>
+  <text x="64" y="467" class="mono">Structured failure diagnostic</text>
+  <text x="64" y="482" class="tag-err">No numeric Inf leaked to optimizer</text>
+
+  <rect x="400" y="430" width="320" height="64" class="box-acc"/>
+  <text x="416" y="450" class="box-hdr">Accepted(artifact, metadata)</text>
+  <text x="416" y="467" class="mono">All demonstration &amp; type predicates pass</text>
+  <text x="416" y="482" class="tag-ok">Enters verified Julia composition core</text>
+
+  <rect x="752" y="430" width="318" height="64" class="box-inc"/>
+  <text x="768" y="450" class="box-hdr">Incomplete(reason, detail)</text>
+  <text x="768" y="467" class="mono">Empty chain, missing tool, or timeout</text>
+  <text x="768" y="482" class="tag-prop">Audited explicitly; never silent pass</text>
+
+  <path d="M 320 412 L 208 426" class="arrow-red"/>
+  <line x1="560" y1="412" x2="560" y2="424" class="arrow-green"/>
+  <path d="M 800 412 L 910 426" class="arrow-amber"/>
+
+  <!-- Feedback loop from Rejected to Search Strategy -->
+  <path d="M 48 462 L 18 462 L 18 140 L 42 140" class="arrow-red"/>
+
+  <!-- Layer 4: Julia Core -->
+  <rect x="30" y="528" width="1060" height="164" class="layer-jl"/>
+  <text x="48" y="550" class="layer-hdr">4. Julia Core (NeuroARC.jl Type-Directed Composition, Scheduling &amp; Experiment Ledger)</text>
+
+  <rect x="48" y="566" width="330" height="106" class="box-jl"/>
+  <text x="64" y="588" class="box-hdr">Typed Hyphal &amp; Deep Grafting</text>
+  <text x="64" y="606" class="mono">Preflight: Out(A) &lt;: In(B)</text>
+  <text x="64" y="622" class="mono">Order: NodeC ∘ NodeB ∘ NodeA</text>
+  <text x="64" y="638" class="mono">Wrapper: x -&gt; second(first(x))</text>
+  <text x="64" y="654" class="tag-ok">[VERIFIED RUNTIME CONTRACT]</text>
+
+  <rect x="410" y="566" width="300" height="106" class="box-py"/>
+  <text x="426" y="588" class="box-hdr">Compute Budget Scheduler</text>
+  <text x="426" y="606" class="mono">Allocates evaluation tokens across</text>
+  <text x="426" y="622" class="mono">verified candidate pipelines</text>
+  <text x="426" y="638" class="mono">Tracks step latency &amp; censoring</text>
+  <text x="426" y="654" class="tag-prop">[PROPOSED SCHEDULING POLICY]</text>
+
+  <rect x="742" y="566" width="328" height="106" class="box-status"/>
+  <text x="758" y="588" class="box-hdr">Experiment completion criteria</text>
+  <text x="758" y="606" class="mono">Global validation status ledger:</text>
+  <text x="758" y="622" class="mono">- Verified Exact Match on demos</text>
+  <text x="758" y="638" class="mono">- Explicit Abstain / Incomplete</text>
+  <text x="758" y="654" class="tag-prop">[REPLACES UNPROVED CONVERGENCE CLAIM]</text>
+
+  <path d="M 560 494 L 560 515 L 213 515 L 213 560" class="arrow-green"/>
+  <line x1="378" y1="619" x2="404" y2="619" class="arrow-green"/>
+  <line x1="710" y1="619" x2="736" y2="619" class="arrow-blue"/>
+  <line x1="910" y1="494" x2="910" y2="560" class="arrow-amber"/>
+</svg>

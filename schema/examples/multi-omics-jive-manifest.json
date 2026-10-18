@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "experiment_id": "MULTI-OMICS-JIVE-EXP-01",
+  "domain": "modern_multi_omics",
+  "description": "Multi-block RNA, protein, and metabolite JIVE decomposition with Frobenius standardization and thin QR projection.",
+  "feasibility_gates": {
+    "license_compliant": true,
+    "provenance_verified": true,
+    "budget_constrained": true,
+    "decontamination_audit_passed": true
+  },
+  "matched_resource_budget": {
+    "total_compute_seconds": 120.0,
+    "max_memory_mb": 1024.0,
+    "quota_units": "seconds_cpu"
+  },
+  "arms": {
+    "arm_a": {
+      "arm_name": "Transcriptomics Alone",
+      "regime_type": "isolation_subsystem_1",
+      "description": "Isolated SVD on RNA expression matrix (1000 features).",
+      "budget_fraction": 0.33,
+      "parameters": {
+        "features": 1000
+      }
+    },
+    "arm_b": {
+      "arm_name": "Metabolomics Alone",
+      "regime_type": "isolation_subsystem_2",
+      "description": "Isolated SVD on metabolite abundance matrix (50 features).",
+      "budget_fraction": 0.33,
+      "parameters": {
+        "features": 50
+      }
+    },
+    "arm_c": {
+      "arm_name": "Decoupled Block Concatenation",
+      "regime_type": "decoupled_combination",
+      "description": "Unweighted matrix concatenation prone to dimension drowning.",
+      "budget_fraction": 1.0,
+      "parameters": {
+        "scaling": "none"
+      }
+    },
+    "arm_d": {
+      "arm_name": "Frobenius-Normalized JIVE",
+      "regime_type": "coupled_mutualism",
+      "description": "Stabilized JIVE with Frobenius standardization and thin QR projection.",
+      "budget_fraction": 1.0,
+      "parameters": {
+        "scaling": "frobenius_dimension_normalized",
+        "projection": "thin_qr"
+      }
+    },
+    "arm_e": {
+      "arm_name": "Adaptive Scaffolding JIVE",
+      "regime_type": "adaptive_scaffolding",
+      "description": "Iterative rank-regularized cross-block alignment.",
+      "budget_fraction": 1.0,
+      "parameters": {
+        "iterative_refinement": true
+      }
+    }
+  },
+  "metrics": {
+    "primary_metric_name": "joint_variance_explained_ratio",
+    "direction": "maximize",
+    "unit": "variance_ratio",
+    "target_baseline": 0.70
+  }
+}

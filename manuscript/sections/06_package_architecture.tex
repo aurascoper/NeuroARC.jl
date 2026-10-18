@@ -1,0 +1,20 @@
+\section{Package Architecture and Zero-Dependency Core Isolation}
+
+To maintain high execution velocity and reproducible execution on minimal environments, \texttt{NeuroARC.jl} enforces zero-dependency core isolation. The core library relies exclusively on the Julia standard library, implementing lightweight internal parsers and memory buffers without external binary dependencies.
+
+\subsection{Standard Julia Package Skeleton}
+The repository adheres to the standard Julia package layout:
+\begin{itemize}
+  \item \texttt{Project.toml}: Declares package UUID (\texttt{a3f5a15a-93e1-4bd8-99e6-0563b78be05c}), semantic versioning bounds on Julia (\texttt{1.10} through \texttt{1.13}), and conditional extension dependencies.
+  \item \texttt{src/NeuroARC.jl}: Exposes public APIs for grid representations, component analysis, criterial calculus, and hyphal grafting contracts.
+  \item \texttt{ext/}: Houses conditional package extensions that load only when external packages are present in the environment:
+  \begin{itemize}
+    \item \texttt{NeuroARCMetalExt.jl}: GPU acceleration for Apple Silicon hardware via \texttt{Metal.jl}.
+    \item \texttt{NeuroARCJACCExt.jl}: Cross-hardware performance portability via \texttt{JACC.jl}.
+    \item \texttt{NeuroARCTuringExt.jl}: Probabilistic Markov Chain Monte Carlo calibration via \texttt{Turing.jl}.
+  \end{itemize}
+  \item \texttt{test/runtests.jl}: Comprehensive unit test suite executing 321 assertions across core types, criterial gates, grafting contracts, and epistemic text cleanliness.
+\end{itemize}
+
+\subsection{Continuous Integration and Clean Runners}
+The repository includes GitHub Actions CI workflows configured for clean runners on Ubuntu and macOS. These workflows verify that the package compiles and passes all unit tests without pre-installing non-standard dependencies, ensuring that clean installations remain fully functional.

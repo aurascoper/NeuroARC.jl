@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "rule_type": "MarkerLineReflectionRule",
+  "parameter_hypotheses": [
+    {
+      "name": "marker_color",
+      "kind": "color",
+      "value": 4
+    },
+    {
+      "name": "axis_candidate",
+      "kind": "text",
+      "value": "vertical"
+    },
+    {
+      "name": "marker_cells",
+      "kind": "coordinates0",
+      "value": [
+        {"row0": 1, "column0": 3},
+        {"row0": 2, "column0": 3}
+      ]
+    }
+  ],
+  "assumptions": [
+    "The marker color identifies a candidate axis and not the cells to reflect."
+  ],
+  "rationale": "Illustrative proposal only; the marker-axis semantics have not yet been specified or verified."
+}

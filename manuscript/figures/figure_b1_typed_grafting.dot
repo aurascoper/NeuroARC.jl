@@ -1,0 +1,28 @@
+digraph FigureB1_TypedGrafting {
+    rankdir=LR;
+    fontname="Helvetica";
+    fontsize=11;
+    labelloc="t";
+    label="Figure B1: Typed Composition and Deep Grafting in NeuroARC.jl (Preflight Out(A) <: In(B) vs Runtime Wrapper Enforcement)";
+    node [shape=box, fontname="Helvetica", fontsize=10, style="rounded,filled", fillcolor="#f9f9f9"];
+    edge [fontname="Helvetica", fontsize=9];
+
+    // Primitive GraftNode Declarations
+    NodeA [label="Node A: PolyominoExtractor\nIn: ColorMappedGrid\nOut: PolyominoGraph", fillcolor="#e1f5fe"];
+    NodeB [label="Node B: StencilStamper\nIn: PolyominoGraph\nOut: ColorMappedGrid", fillcolor="#e8f5e9"];
+    NodeC [label="Node C: ColorPermutor\nIn: ColorMappedGrid\nOut: ColorMappedGrid", fillcolor="#e8f5e9"];
+    NodeX [label="Node X: InvalidTransformer\nIn: BoundedPolyomino\nOut: ColorMappedGrid", fillcolor="#ffebee"];
+
+    // Composed Pipeline Nodes (Enforcing x -> second(first(x)))
+    ComposedAB [label="Composed: NodeB ∘ NodeA\nCallable: x -> nodeB(nodeA(x))\nIn: ColorMappedGrid | Out: ColorMappedGrid", fillcolor="#dcedc8"];
+    ComposedABC [label="Deep Graft: NodeC ∘ NodeB ∘ NodeA\nCallable: x -> nodeC((nodeB ∘ nodeA)(x))\nIn: ColorMappedGrid | Out: ColorMappedGrid", fillcolor="#c8e6c9"];
+
+    // Verdict-Driven Preflight Edges
+    NodeA -> NodeB [label="Accepted (subtype_compatible)\nOut(NodeA) <: In(NodeB)\n(PolyominoGraph <: PolyominoGraph)", color="#2e7d32", fontcolor="#1b5e20", style="solid", penwidth=2.0];
+    NodeB -> NodeC [label="Accepted (subtype_compatible)\nOut(NodeB) <: In(NodeC)\n(ColorMappedGrid <: ColorMappedGrid)", color="#2e7d32", fontcolor="#1b5e20", style="solid", penwidth=2.0];
+    NodeA -> NodeX [label="Rejected by Preflight (type_mismatch)\n!(Out(NodeA) <: In(NodeX))\n(PolyominoGraph not <: BoundedPolyomino)\n0 node calls; distinct from runtime MethodError", color="#c62828", fontcolor="#b71c1c", style="dashed", penwidth=1.5];
+
+    // Composition Construction Lineage
+    NodeB -> ComposedAB [label="yields NodeB ∘ NodeA", color="#1565c0", style="dotted", penwidth=1.4];
+    ComposedAB -> ComposedABC [label="graft with NodeC\nyields NodeC ∘ NodeB ∘ NodeA", color="#1565c0", style="dotted", penwidth=1.4];
+}

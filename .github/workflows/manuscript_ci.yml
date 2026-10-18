@@ -1,0 +1,51 @@
+name: Manuscript CI
+
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "manuscript/**"
+      - ".github/workflows/manuscript_ci.yml"
+  pull_request:
+    paths:
+      - "manuscript/**"
+      - ".github/workflows/manuscript_ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: manuscript-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-manuscript:
+    name: Compile Manuscript PDF
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Tectonic
+        uses: wchargin/setup-tectonic@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile Manuscript (.tex to .pdf)
+        working-directory: manuscript
+        run: |
+          tectonic main.tex
+          ls -la main.pdf
+
+      - name: Verify Text Cleanliness (Zero Em/En Dashes and Quarantined Terms)
+        run: |
+          python3 test/check_text_clean.py manuscript/
+
+      - name: Upload PDF Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: neuroarc-manuscript-pdf
+          path: manuscript/main.pdf
+          retention-days: 30

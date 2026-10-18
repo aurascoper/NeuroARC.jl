@@ -1,0 +1,332 @@
+    NeuroARC.jl: Typed Criterial Causation, Hyphal
+    Grafting, and Epistemic Invariants in Grid Domain
+                          Logic
+                                       Hunter Kinder
+                                    hkinder@stlteach.org
+                           NeuroARC Autonomous Agent Research Group
+
+                                                October 2026
+
+
+                                                   Abstract
+          Discrete visual abstraction benchmarks like the Abstraction and Reasoning Corpus (ARC) re-
+      quire autonomous agents to infer generative rules from few demonstration pairs without leaking
+      ungrounded search priors into downstream execution. In this work, we introduce NeuroARC.jl,
+      a high performance Julia framework that operationalizes Peter Tse’s cognitive theory of crite-
+      rial causation, Wood-Bruner-Ross pedagogical scaﬀolding, and typed hyphal grafting within an
+      auditable execution pipeline. Rather than treating candidate selection as unconstrained neural
+      generation or unstratiﬁed brute-force program search, NeuroARC.jl formalizes rule composition
+      as a tri-stage temporal process (t1 , t2 , t3 ) governed by criterial logic gates (Threshold, Bandpass,
+      Subtype, Conjunction, Disjunction, and K-of-N). Candidate transformations are composed via
+      static subtyping preﬂight veriﬁcation (Out(A) <: In(B)) paired with runtime boundary enforce-
+      ment, preventing numeric sentinel leakage by emitting algebraic verdicts (Accepted, Rejected,
+      and Incomplete). We isolate a zero-dependency core package while providing explicit exten-
+      sion boundaries for Apple Silicon GPU acceleration via Metal.jl, cross-architecture parallel
+      computing via JACC.jl, and probabilistic calibration via Turing.jl. This package structure
+      is accompanied by an automated continuous integration pipeline that compiles this manuscript
+      and validates 321 unit tests under clean runners.
+
+
+1    Introduction and Epistemic Architecture Boundaries
+The Abstraction and Reasoning Corpus (ARC) challenges current artiﬁcial intelligence architectures
+by requiring broad general intelligence across discrete grid environments [1]. Typical approaches rely
+on large language model code generation, brute-force domain speciﬁc language (DSL) enumeration,
+or end-to-end neural policy search. However, existing implementations often suﬀer from three
+systemic defects: (1) lack of type safety during dynamic program composition, leading to silent
+runtime type coercions or uninformative exceptions; (2) use of numerical sentinel values like Inf
+or -1.0 to signal candidate failure, which frequently leak into numerical optimizers and distort
+beam search scoring; and (3) conﬂation of distinct epistemic categories, wherein speculative search
+heuristics are mislabeled as veriﬁed mathematical theorems.
+    To resolve these defects, we present NeuroARC.jl, a Julia package designed for autonomous
+visual reasoning. A central design principle of our research program is strict epistemological strati-
+ﬁcation across distinct research tracks:
+
+
+
+                                                        1
+    • Track 2 (Donald Hoﬀman Paper Route): Kept rigorously minimalist, conservative, and
+      focused exclusively on whether an aesthetic preference relation escapes the 2006 Scrambling
+      Theorem or is carried by a functional bijection [2]. No ARC benchmarks, prompt engineering
+      tokens, or ungrounded algorithmic operators enter Track 2.
+
+    • Track 3 (Antigravity and NeuroARC.jl Track): The operational software platform
+      for criterial causation, informational logic gates, pedagogical scaﬀolding, morphological grid
+      invariants, and psycholinguistic chain-of-thought mediation.
+
+   By maintaining this separation, NeuroARC.jl formalizes cognitive operations as veriﬁable com-
+putational contracts without burdening foundational perceptual theorems with application-speciﬁc
+implementation details.
+
+
+2     Tri-Stage Criterial Architecture and Logic Gates
+Following Peter Tse’s neuro-cognitive model of criterial causation [3], neural selection is not modeled
+as direct physical determinism, but as informational gating over dynamic synaptic weights. In
+NeuroARC.jl, this process is operationalized as a tri-stage temporal architecture:
+
+    1. Stage t1 (Setting of Informational Criteria): The controller conﬁgures acceptance
+       thresholds τ , projection operators ΠS , and assigns initial computational token budgets based
+       on generative entrenchment [4].
+
+    2. Stage t2 (Input Arrival and Informational Gating): Candidate transformations or
+       sensory grid states x ∈ X are evaluated across a composition of criterial logic gates:
+
+         • Threshold Gate: g(x) = 1{c(x) ≥ τ }
+         • Bandpass Gate: g(x) = 1{τmin ≤ c(x) ≤ τmax }
+         • Subtype Gate: g(A, B) = 1{Out(A) <: In(B)} (evaluated with zero executions of
+           node functions)
+                                                      ∏K
+         • Conjunction Gate (AND): G∧ (x) =    k=1 1{ck (x) ≥ τk }
+
+                                              k=1 1{ck (x) ≥ τk }
+         • Disjunction Gate (OR): G∨ (x) = maxK
+                                         {∑                            }
+                                             m=1 1{cm (x) ≥ τm } ≥ k
+                                           N
+         • K-of-N Gate: Gk/N (x) = 1
+
+    3. Stage t3 (Downward Empowerment or Extinction):
+
+         • When criteria are satisﬁed, the candidate is projected onto the invariant subspace ΠS (x)
+           and rewarded with downstream compute allocation via an Accepted(value, salient_features,
+           score, detail) verdict.
+         • When criteria fail, execution is halted immediately with zero downstream budget con-
+           sumption, emitting a typed diagnostic Rejected(reason, detail, failed_gates, partial_score).
+         • When prerequisites or tools are unavailable, the system emits an auditable Incomplete(reason,
+           detail) status, preventing silent fallback.
+
+    Furthermore, the pedagogical scaﬀolding loop of Wood, Bruner, and Ross [5] is instantiated as
+a controller across six tutorial functions (Recruitment, Reduction in Degrees of Freedom, Direction
+Maintenance, Marking Critical Features, Frustration Control, and Demonstration), managing state
+transitions across Focus, Frustration, and Panic modes.
+
+                                                  2
+3       Hyphal Grafting and Deep Composition Contracts
+Complex ARC reasoning rules rarely arise as atomic primitives; they are formed by composing mod-
+ular operators such as connected component extractors, spatial transformers, and stencil stampers.
+We formalize this composition through the biological metaphor of hyphal grafting.
+
+3.1         Static Preﬂight Subtype Checking
+Let A and B denote two transformation nodes encapsulated within parametric types:
+
+                                                     A :: GraftNode{InA , OutA },                                                                B :: GraftNode{InB , OutB }                                                                                                     (1)
+
+Before connecting A and B, the system evaluates Julia’s subtype lattice relation:
+
+                                                                                                                         OutA <: InB                                                                                                                                             (2)
+
+If this condition is violated, the edge is rejected during preﬂight validation with zero executions of
+the underlying functions A.f or B.f . This resolves a signiﬁcant source of latency in large search
+graphs by pruning invalid compositional branches before dispatch.
+
+3.2         Runtime Intermediate Boundary Enforcement
+Static subtyping guarantees that declared signatures are compatible; however, it does not guarantee
+that an arbitrary implementation A.f strictly respects its declared return type for all edge cases. To
+prevent unveriﬁed types from propagating across intermediate pipeline boundaries, the composed
+execution wrapper is deﬁned as:
+                                      (B ◦ A)(x) = B(A(x))                                          (3)
+where each node call wrapper (N )(x) enforces:
+
+                                                                                            Core.typeassert(N.f (x), OutN )                                                                                                                                                      (4)
+
+This ensures that any intermediate contract violation immediately triggers an auditable TypeError
+at the exact boundary of failure, rather than corrupting subsequent pipeline stages.
+
+                                                                               Figure B1: Typed Composition and Deep Grafting in NeuroARC.jl (Preflight Out(A) <: In(B) vs Runtime Wrapper Enforcement)
+                                                                                                                     Accepted (subtype_compatible)
+                                                                                                                        Out(NodeB) <: In(NodeC)
+                                                                                                                                                                 Node C: ColorPermutor
+                                        Accepted (subtype_compatible)                                            (ColorMappedGrid <: ColorMappedGrid)             In: ColorMappedGrid
+                                           Out(NodeA) <: In(NodeB)                    Node B: StencilStamper                                                     Out: ColorMappedGrid
+                                     (PolyominoGraph <: PolyominoGraph)                 In: PolyominoGraph              yields NodeB ∘ NodeA
+                                                                                       Out: ColorMappedGrid
+    Node A: PolyominoExtractor                                                                                                                                                                               graft with NodeC
+                                                                                                                                                                Composed: NodeB ∘ NodeA                                                 Deep Graft: NodeC ∘ NodeB ∘ NodeA
+       In: ColorMappedGrid           Rejected by Preflight (type_mismatch)                                                                                                                           yields NodeC ∘ NodeB ∘ NodeA
+      Out: PolyominoGraph                 !(Out(NodeA) <: In(NodeX))                                                                                           Callable: x -> nodeB(nodeA(x))                                         Callable: x -> nodeC((nodeB ∘ nodeA)(x))
+                                  (PolyominoGraph not <: BoundedPolyomino)          Node X: InvalidTransformer                                          In: ColorMappedGrid | Out: ColorMappedGrid                                  In: ColorMappedGrid | Out: ColorMappedGrid
+                                 0 node calls; distinct from runtime MethodError      In: BoundedPolyomino
+                                                                                      Out: ColorMappedGrid
+
+
+
+
+Figure 1: Figure B1: Typed Composition and Deep Grafting Contract. Illustrates preﬂight
+compatibility checking (Out(A) <: In(B)), typed verdicts (Accepted vs Rejected), associative
+three-stage deep grafting (C ◦ B ◦ A), and runtime intermediate boundary type assertions.
+
+
+
+4       Deterministic Veriﬁer and Epistemic Invariants
+A critical challenge in visual abstraction is solipsistic overﬁtting, where candidate search algorithms
+ﬁt demonstrations via memorization rather than inferring generalizable rules. NeuroARC.jl imple-
+ments an isolated veriﬁcation harness:
+
+                                                                                                                                           3
+4.1    Veriﬁcation Invariants
+Before any candidate is admitted into the veriﬁed execution pool, it must satisfy three deterministic
+gates:
+    1. Train Exact Reconstruction: The candidate transformation must reconstruct 100% of
+       cells across all training demonstration output grids (Yi = f (Xi )) with maximum cell residual
+       equal to 0.0.
+    2. Informative Leave-One-Out (LOO) Evaluation: Cross-validation across demonstration
+       pairs is evaluated to detect parameter overﬁtting. When a rule contains free parameters,
+       LOO folds are marked informative; parameter-free macros require veriﬁed cross-task ﬁring to
+       avoid single-task memorization.
+    3. Equivariance Gating: Where task semantics exhibit geometric invariance, the candidate
+       must commute with the dihedral group D8 and background-preserving color permutations.
+       If a candidate depends on directional or absolute spatial coordinates, equivariance is ﬂagged
+       as untestable, leading to an explicit Incomplete evaluation rather than a false positive
+       certiﬁcation.
+
+4.2    Epistemic Limits of Veriﬁcation
+The veriﬁer certiﬁes compliance with observed demonstration contracts and structural invariants; it
+does not and cannot certify ground-truth accuracy on held-out test grids. Post-run test evaluation
+is conducted strictly through isolated scoring harnesses against quarantined held-out labels after
+solver processes terminate.
+
+
+5     Package Architecture and Zero-Dependency Core Isolation
+To maintain high execution velocity and reproducible execution on minimal environments, NeuroARC.jl
+enforces zero-dependency core isolation. The core library relies exclusively on the Julia standard
+library, implementing lightweight internal parsers and memory buﬀers without external binary
+dependencies.
+
+5.1    Standard Julia Package Skeleton
+The repository adheres to the standard Julia package layout:
+    • Project.toml: Declares package UUID (a3f5a15a-93e1-4bd8-99e6-0563b78be05c), seman-
+      tic versioning bounds on Julia (1.10 through 1.13), and conditional extension dependencies.
+    • src/NeuroARC.jl: Exposes public APIs for grid representations, component analysis, crite-
+      rial calculus, and hyphal grafting contracts.
+    • ext/: Houses conditional package extensions that load only when external packages are
+      present in the environment:
+         • NeuroARCMetalExt.jl: GPU acceleration for Apple Silicon hardware via Metal.jl.
+         • NeuroARCJACCExt.jl: Cross-hardware performance portability via JACC.jl.
+         • NeuroARCTuringExt.jl: Probabilistic Markov Chain Monte Carlo calibration via Turing.jl.
+    • test/runtests.jl: Comprehensive unit test suite executing 321 assertions across core types,
+      criterial gates, grafting contracts, and epistemic text cleanliness.
+
+                                                  4
+                                   Figure B2: NeuroARC Agent Execution and Verification Architecture (Proposed Interface vs Verified Contracts)
+
+                                                                           3. Criterial Verification Membrane
+
+                                                                                                      Independent validation suite
+                                                                                              1. Exact demonstration pair reconstruction
+                                                                                       2. Discrete grid dimension (1..30) & palette (0..9) checks
+                                                                                            3. Structural & topological invariant predicates
+
+
+                                                                              all predicates hold   unavailable resource         predicate violation
+
+
+                      Accepted(artifact, metadata)                    Incomplete(reason, detail)                            Rejected(reason, detail)
+                          Typed pass verdict                   Missing prerequisite or budget exhaustion         Typed diagnostic failure (no numeric Inf sentinel)
+
+
+                                                                                                                                           structured rejection reason
+                                    enters verified pipeline
+                                                                                                                                              updates search state
+
+      4. Julia Core (NeuroARC.jl Typed Composition & Execution)                                            1. Presynaptic Layer (Python Agent Search Strategy)
+
+                    Type-Directed Hyphal Grafting
+                                                                                                                            Search Strategy Controller
+                       Preflight: Out(A) <: In(B)                                                                                                                             presents candidate buffer
+                                                                                                                  State transitions: Focus -> Frustration -> Panic
+                 Runtime wrapper: x -> second(first(x))
+
+
+                                  Accepted(NodeC ∘ NodeB ∘ NodeA)             logged as INCOMPLETE                                         selects search operator
+
+
+
+                      Compute Budget Scheduler                                                                           Candidate Rule & Grid Proposer
+        Allocates evaluation budget across verified compositions                                                    Emits candidate specification and metadata
+
+
+                                    records verified task outcome                                                                              dispatches candidate payload
+
+                                                                                                                                       2. Cross-Language Transport Boundary
+
+                          Global validation status &                                                                                       Proposed shared-buffer interface
+                        Experiment completion criteria                                                                                 (Python-to-Julia buffer descriptor handoff;
+       (Auditable pass/abstain ledger; no unproved convergence claim)                                                       ownership & concurrency tests required before zero-copy claims)
+
+
+
+
+Figure 2: Figure B2: NeuroARC Agent Execution and Veriﬁcation Architecture. Depicts
+the separation between presynaptic heuristic search, cross-language transport buﬀers, the criterial
+veriﬁcation membrane, and the veriﬁed Julia composition core.
+
+
+
+
+                                                                                                    5
+5.2    Continuous Integration and Clean Runners
+The repository includes GitHub Actions CI workﬂows conﬁgured for clean runners on Ubuntu
+and macOS. These workﬂows verify that the package compiles and passes all unit tests without
+pre-installing non-standard dependencies, ensuring that clean installations remain fully functional.
+
+
+6     Discussion, Competition Governance, and Repository Lifecycle
+A central operational question addressed in this milestone is the release cadence for NeuroARC.jl:
+speciﬁcally, whether the codebase should be published immediately to an open repository.
+
+6.1    Rationale for Initial Private Repository Status
+We conclude that NeuroARC.jl must be initialized and maintained as a private repository prior to
+broader public release, driven by three strategic constraints:
+
+    1. Audit and Speciﬁcation Invariants: The anti-solipsism framework, the deterministic
+       veriﬁer threat model, and the GLMM calibration protocol are currently held at speciﬁcation
+       status pending formal independent review. Releasing provisional thresholds and telemetry
+       schemas prematurely exposes work before formal audit gates close.
+
+    2. Kaggle ARC-AGI-2 Competition Governance: The active competition cycle imposes
+       strict requirements on candidate generators, decontaminated DSL primitive libraries (com-
+       prising 557 veriﬁed operators), and reﬂexive recurrence modules. Maintaining private status
+       protects submission provenance, prevents licensing ambiguities, and prevents accidental data
+       contamination.
+
+    3. Upstream Git Read-Only Boundary: Upstream modules in arc-agi-2-cpu-kaggle-modules
+       remain strictly read-only. Decoupling the cross-language memory boundary between Python
+       and Julia must precede any public interface exposure.
+
+6.2    Prerequisites for Public Release
+The transition from private to public repository status is scheduled upon completion of three
+veriﬁable gates:
+
+    1. Formal completion of the Donald Hoﬀman outreach cycle on the six-page foundational draft.
+
+    2. Execution and cryptographic sealing of the Revision 3 anti-solipsism audit gates and telemetry
+       logs (task_audit_table.parquet).
+
+    3. Freezing and public evaluation of the ﬁnal Kaggle competition submission notebook.
+
+    Maintaining an internal private repository provides immediate beneﬁts, including immutable Git
+commit hashes for academic citations (Paper B), secure continuous integration, and reproducible
+version control without compromising governance invariants.
+
+
+
+
+                                                  6
+References
+[1] Francois Chollet. On the measure of intelligence. arXiv preprint arXiv:1911.01547, 2019.
+
+[2] Donald D Hoﬀman, Manish Singh, and Chetan Prakash. Objects of desire: The shape of feasible
+    perceptual spaces. Cognitive Science, 39(7):1477 to 1534, 2015.
+
+[3] Peter U Tse. The neural code: Language of the brain. MIT Press, 2013.
+
+[4] William C Wimsatt. Developmental constraints, generative entrenchment, and the innate-
+    acquired distinction. Integrating Scientiﬁc Disciplines, page 185 to 208, 1986.
+
+[5] David Wood, Jerome S Bruner, and Gail Ross. The role of tutoring in problem solving. Journal
+    of Child Psychology and Psychiatry, 17(2):89 to 100, 1976.
+
+
+
+
+                                                7
+

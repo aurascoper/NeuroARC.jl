@@ -1,0 +1,21 @@
+\section{Deterministic Verifier and Epistemic Invariants}
+
+A critical challenge in visual abstraction is solipsistic overfitting, where candidate search algorithms fit demonstrations via memorization rather than inferring generalizable rules. \texttt{NeuroARC.jl} implements an isolated verification harness:
+
+\subsection{Verification Invariants}
+Before any candidate is admitted into the verified execution pool, it must satisfy three deterministic gates:
+\begin{enumerate}
+  \item \textbf{Train Exact Reconstruction}: The candidate transformation must reconstruct 100\% of cells across all training demonstration output grids ($Y_i = f(X_i)$) with maximum cell residual equal to 0.0.
+  \item \textbf{Informative Leave-One-Out (LOO) Evaluation}: Cross-validation across demonstration pairs is evaluated to detect parameter overfitting. When a rule contains free parameters, LOO folds are marked informative; parameter-free macros require verified cross-task firing to avoid single-task memorization.
+  \item \textbf{Equivariance Gating}: Where task semantics exhibit geometric invariance, the candidate must commute with the dihedral group $D_8$ and background-preserving color permutations. If a candidate depends on directional or absolute spatial coordinates, equivariance is flagged as \texttt{untestable}, leading to an explicit \texttt{Incomplete} evaluation rather than a false positive certification.
+\end{enumerate}
+
+\subsection{Epistemic Limits of Verification}
+The verifier certifies compliance with observed demonstration contracts and structural invariants; it does not and cannot certify ground-truth accuracy on held-out test grids. Post-run test evaluation is conducted strictly through isolated scoring harnesses against quarantined held-out labels after solver processes terminate.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{figures/figure_b2_agent_execution.pdf}
+  \caption{\textbf{Figure B2: NeuroARC Agent Execution and Verification Architecture.} Depicts the separation between presynaptic heuristic search, cross-language transport buffers, the criterial verification membrane, and the verified Julia composition core.}
+  \label{fig:agent_execution}
+\end{figure}

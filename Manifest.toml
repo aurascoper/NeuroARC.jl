@@ -1,0 +1,20 @@
+# This file is machine-generated - editing it directly is not advised
+
+julia_version = "1.13.1"
+manifest_format = "2.1"
+project_hash = "7bcbd02ca2b1e21121a93ae6b7a4597cd4a773cc"
+
+[[deps.NeuroARC]]
+path = "."
+uuid = "a3f5a15a-93e1-4bd8-99e6-0563b78be05c"
+version = "0.1.0"
+
+    [deps.NeuroARC.extensions]
+    NeuroARCJACCExt = "JACC"
+    NeuroARCMetalExt = "Metal"
+    NeuroARCTuringExt = "Turing"
+
+    [deps.NeuroARC.weakdeps]
+    JACC = "0979c8fe-16a4-4796-9b82-89a9f10403ea"
+    Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
+    Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"

@@ -1,0 +1,11 @@
+\section{Introduction and Epistemic Architecture Boundaries}
+
+The Abstraction and Reasoning Corpus (ARC) challenges current artificial intelligence architectures by requiring broad general intelligence across discrete grid environments \cite{chollet2019measure}. Typical approaches rely on large language model code generation, brute-force domain specific language (DSL) enumeration, or end-to-end neural policy search. However, existing implementations often suffer from three systemic defects: (1) lack of type safety during dynamic program composition, leading to silent runtime type coercions or uninformative exceptions; (2) use of numerical sentinel values like \texttt{Inf} or \texttt{-1.0} to signal candidate failure, which frequently leak into numerical optimizers and distort beam search scoring; and (3) conflation of distinct epistemic categories, wherein speculative search heuristics are mislabeled as verified mathematical theorems.
+
+To resolve these defects, we present \texttt{NeuroARC.jl}, a Julia package designed for autonomous visual reasoning. A central design principle of our research program is strict epistemological stratification across distinct research tracks:
+\begin{itemize}
+  \item \textbf{Track 2 (Donald Hoffman Paper Route)}: Kept rigorously minimalist, conservative, and focused exclusively on whether an aesthetic preference relation escapes the 2006 Scrambling Theorem or is carried by a functional bijection \cite{hoffman2014objects}. No ARC benchmarks, prompt engineering tokens, or ungrounded algorithmic operators enter Track 2.
+  \item \textbf{Track 3 (Antigravity and NeuroARC.jl Track)}: The operational software platform for criterial causation, informational logic gates, pedagogical scaffolding, morphological grid invariants, and psycholinguistic chain-of-thought mediation.
+\end{itemize}
+
+By maintaining this separation, \texttt{NeuroARC.jl} formalizes cognitive operations as verifiable computational contracts without burdening foundational perceptual theorems with application-specific implementation details.

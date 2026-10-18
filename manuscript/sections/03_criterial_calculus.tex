@@ -1,0 +1,24 @@
+\section{Tri-Stage Criterial Architecture and Logic Gates}
+
+Following Peter Tse's neuro-cognitive model of criterial causation \cite{tse2013neural}, neural selection is not modeled as direct physical determinism, but as informational gating over dynamic synaptic weights. In \texttt{NeuroARC.jl}, this process is operationalized as a tri-stage temporal architecture:
+
+\begin{enumerate}
+  \item \textbf{Stage $t_1$ (Setting of Informational Criteria)}: The controller configures acceptance thresholds $\boldsymbol{\tau}$, projection operators $\Pi_{\mathcal{S}}$, and assigns initial computational token budgets based on generative entrenchment \cite{wimsatt1986developmental}.
+  \item \textbf{Stage $t_2$ (Input Arrival and Informational Gating)}: Candidate transformations or sensory grid states $x \in \mathcal{X}$ are evaluated across a composition of criterial logic gates:
+  \begin{itemize}
+    \item \textbf{Threshold Gate}: $g(x) = \mathbf{1}\{c(x) \ge \tau\}$
+    \item \textbf{Bandpass Gate}: $g(x) = \mathbf{1}\{\tau_{\min} \le c(x) \le \tau_{\max}\}$
+    \item \textbf{Subtype Gate}: $g(A, B) = \mathbf{1}\{\mathrm{Out}(A) <: \mathrm{In}(B)\}$ (evaluated with zero executions of node functions)
+    \item \textbf{Conjunction Gate (AND)}: $G_{\land}(x) = \prod_{k=1}^K \mathbf{1}\{c_k(x) \ge \tau_k\}$
+    \item \textbf{Disjunction Gate (OR)}: $G_{\lor}(x) = \max_{k=1}^K \mathbf{1}\{c_k(x) \ge \tau_k\}$
+    \item \textbf{K-of-N Gate}: $G_{k/N}(x) = \mathbf{1}\left\{\sum_{m=1}^N \mathbf{1}\{c_m(x) \ge \tau_m\} \ge k\right\}$
+  \end{itemize}
+  \item \textbf{Stage $t_3$ (Downward Empowerment or Extinction)}:
+  \begin{itemize}
+    \item When criteria are satisfied, the candidate is projected onto the invariant subspace $\Pi_{\mathcal{S}}(x)$ and rewarded with downstream compute allocation via an \texttt{Accepted(value, salient\_features, score, detail)} verdict.
+    \item When criteria fail, execution is halted immediately with zero downstream budget consumption, emitting a typed diagnostic \texttt{Rejected(reason, detail, failed\_gates, partial\_score)}.
+    \item When prerequisites or tools are unavailable, the system emits an auditable \texttt{Incomplete(reason, detail)} status, preventing silent fallback.
+  \end{itemize}
+\end{enumerate}
+
+Furthermore, the pedagogical scaffolding loop of Wood, Bruner, and Ross \cite{wood1976role} is instantiated as a controller across six tutorial functions (Recruitment, Reduction in Degrees of Freedom, Direction Maintenance, Marking Critical Features, Frustration Control, and Demonstration), managing state transitions across \texttt{Focus}, \texttt{Frustration}, and \texttt{Panic} modes.

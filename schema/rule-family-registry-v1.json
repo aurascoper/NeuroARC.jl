@@ -1,0 +1,40 @@
+{
+  "registry_version": 1,
+  "families": [
+    {
+      "rule_type": "MarkerLineReflectionRule",
+      "parameter_contract_status": "proposal_only",
+      "executor_status": "unimplemented",
+      "direct_instantiation_allowed": false,
+      "description": "Reflection and point-inversion through marker-cell clusters."
+    },
+    {
+      "rule_type": "CorridorWireTraceRule",
+      "parameter_contract_status": "proposal_only",
+      "executor_status": "unimplemented",
+      "direct_instantiation_allowed": false,
+      "description": "Routing through crossings and stations."
+    },
+    {
+      "rule_type": "GeodesicBarrierFloodRule",
+      "parameter_contract_status": "proposal_only",
+      "executor_status": "unimplemented",
+      "direct_instantiation_allowed": false,
+      "description": "Multi-source barrier-aware flood fill."
+    },
+    {
+      "rule_type": "PeriodicStampWithPriorityRule",
+      "parameter_contract_status": "proposal_only",
+      "executor_status": "unimplemented",
+      "direct_instantiation_allowed": false,
+      "description": "Count-encoded period with layered overdraw priority."
+    },
+    {
+      "rule_type": "ExactCoverPolyominoRule",
+      "parameter_contract_status": "proposal_only",
+      "executor_status": "unimplemented",
+      "direct_instantiation_allowed": false,
+      "description": "Exact cover polyomino tiling with perimeter tie-breaking."
+    }
+  ]
+}

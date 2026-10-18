@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 660" width="100%" height="100%">
+  <defs>
+    <style>
+      .bg { fill: #0f172a; }
+      .panel { fill: #1e293b; stroke: #334155; stroke-width: 1.5; rx: 10; }
+      .node-a { fill: #0c4a6e; stroke: #38bdf8; stroke-width: 2; rx: 8; }
+      .node-valid { fill: #064e3b; stroke: #34d399; stroke-width: 2; rx: 8; }
+      .node-comp { fill: #14532d; stroke: #4ade80; stroke-width: 2.2; rx: 8; }
+      .node-reject { fill: #450a0a; stroke: #f87171; stroke-width: 2; rx: 8; }
+      .title { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 18px; font-weight: 700; fill: #f8fafc; }
+      .subtitle { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 12px; fill: #94a3b8; }
+      .sec-hdr { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; fill: #38bdf8; }
+      .node-title { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 12.5px; font-weight: 700; fill: #f8fafc; }
+      .mono { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10.5px; fill: #e2e8f0; }
+      .edge-ok-txt { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10px; font-weight: 700; fill: #4ade80; }
+      .edge-err-txt { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10px; font-weight: 700; fill: #f87171; }
+      .edge-comp-txt { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 10px; font-weight: 700; fill: #60a5fa; }
+      .edge-ok { stroke: #22c55e; stroke-width: 2.4; fill: none; marker-end: url(#arrowOk); }
+      .edge-err { stroke: #ef4444; stroke-width: 2.0; stroke-dasharray: 7,5; fill: none; marker-end: url(#arrowErr); }
+      .edge-comp { stroke: #3b82f6; stroke-width: 1.8; stroke-dasharray: 4,4; fill: none; marker-end: url(#arrowComp); }
+    </style>
+    <marker id="arrowOk" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#22c55e"/>
+    </marker>
+    <marker id="arrowErr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444"/>
+    </marker>
+    <marker id="arrowComp" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#3b82f6"/>
+    </marker>
+  </defs>
+
+  <rect width="1120" height="660" class="bg"/>
+
+  <!-- Header -->
+  <text x="30" y="34" class="title">Figure B1: Typed Composition and Deep Grafting in NeuroARC.jl</text>
+  <text x="30" y="54" class="subtitle">Preflight Type-Compatibility Verdict (Out(A) &lt;: In(B), Zero Node Calls) Coupled with Runtime Wrapper Enforcement (x -&gt; second(first(x)))</text>
+
+  <!-- Main Graph Panel -->
+  <rect x="30" y="72" width="1060" height="390" class="panel"/>
+  <text x="48" y="96" class="sec-hdr">1. Typed Transformation Graph &amp; Preflight Compatibility Verdicts</text>
+
+  <!-- Node A -->
+  <rect x="52" y="135" width="230" height="90" class="node-a"/>
+  <text x="66" y="158" class="node-title">Node A: PolyominoExtractor</text>
+  <text x="66" y="178" class="mono">label_compose: "NodeA"</text>
+  <text x="66" y="195" class="mono">In:  ColorMappedGrid</text>
+  <text x="66" y="212" class="mono">Out: PolyominoGraph</text>
+
+  <!-- Node B -->
+  <rect x="440" y="115" width="230" height="90" class="node-valid"/>
+  <text x="454" y="138" class="node-title">Node B: StencilStamper</text>
+  <text x="454" y="158" class="mono">label_compose: "NodeB"</text>
+  <text x="454" y="175" class="mono">In:  PolyominoGraph</text>
+  <text x="454" y="192" class="mono">Out: ColorMappedGrid</text>
+
+  <!-- Node C -->
+  <rect x="828" y="115" width="235" height="90" class="node-valid"/>
+  <text x="842" y="138" class="node-title">Node C: ColorPermutor</text>
+  <text x="842" y="158" class="mono">label_compose: "NodeC"</text>
+  <text x="842" y="175" class="mono">In:  ColorMappedGrid</text>
+  <text x="842" y="192" class="mono">Out: ColorMappedGrid</text>
+
+  <!-- Node X (Rejected Branch) -->
+  <rect x="440" y="325" width="230" height="100" class="node-reject"/>
+  <text x="454" y="348" class="node-title">Node X: InvalidTransformer</text>
+  <text x="454" y="368" class="mono">label_compose: "NodeX"</text>
+  <text x="454" y="385" class="mono">In:  BoundedPolyomino (max_span)</text>
+  <text x="454" y="402" class="mono">Out: ColorMappedGrid</text>
+  <text x="454" y="417" class="edge-ok-txt">Direct call valid on BoundedPolyomino</text>
+
+  <!-- Composed NodeB ∘ NodeA -->
+  <rect x="580" y="228" width="230" height="82" class="node-comp"/>
+  <text x="594" y="250" class="node-title">Composed: NodeB ∘ NodeA</text>
+  <text x="594" y="268" class="mono">fn: x -&gt; nodeB(nodeA(x))</text>
+  <text x="594" y="285" class="mono">In: ColorMappedGrid</text>
+  <text x="594" y="300" class="mono">Out: ColorMappedGrid</text>
+
+  <!-- Deep Graft NodeC ∘ NodeB ∘ NodeA -->
+  <rect x="828" y="228" width="235" height="82" class="node-comp"/>
+  <text x="842" y="250" class="node-title">Deep Graft: NodeC ∘ NodeB ∘ NodeA</text>
+  <text x="842" y="268" class="mono">fn: x -&gt; nodeC((nodeB ∘ nodeA)(x))</text>
+  <text x="842" y="285" class="mono">In: ColorMappedGrid</text>
+  <text x="842" y="300" class="mono">Out: ColorMappedGrid</text>
+
+  <!-- Edges -->
+  <!-- NodeA -> NodeB -->
+  <line x1="282" y1="160" x2="432" y2="160" class="edge-ok"/>
+  <text x="292" y="134" class="edge-ok-txt">Accepted (:subtype_compatible)</text>
+  <text x="292" y="148" class="mono">Out(NodeA) &lt;: In(NodeB)</text>
+  <text x="292" y="176" class="mono">(PolyominoGraph &lt;: PolyominoGraph)</text>
+
+  <!-- NodeB -> NodeC -->
+  <line x1="670" y1="160" x2="820" y2="160" class="edge-ok"/>
+  <text x="680" y="134" class="edge-ok-txt">Accepted (:subtype_compatible)</text>
+  <text x="680" y="148" class="mono">Out(NodeB) &lt;: In(NodeC)</text>
+  <text x="680" y="176" class="mono">(ColorMappedGrid &lt;: ColorMappedGrid)</text>
+
+  <!-- NodeA -> NodeX (Rejected) -->
+  <path d="M 167 225 L 167 375 L 432 375" class="edge-err"/>
+  <text x="180" y="340" class="edge-err-txt">Rejected by Preflight Validator (:type_mismatch)</text>
+  <text x="180" y="356" class="mono">!(Out(NodeA) &lt;: In(NodeX)): PolyominoGraph not &lt;: BoundedPolyomino</text>
+  <text x="180" y="394" class="mono">0 node executions during preflight (distinct from runtime MethodError)</text>
+
+  <!-- Lineage arrows to composed nodes -->
+  <path d="M 555 205 L 555 268 L 572 268" class="edge-comp"/>
+  <line x1="810" y1="268" x2="822" y2="268" class="edge-comp"/>
+
+  <!-- Bottom Contract Distinction Panel -->
+  <rect x="30" y="478" width="1060" height="156" class="panel"/>
+  <text x="48" y="502" class="sec-hdr">2. Contract Separation: Static Preflight Check vs Runtime Boundary Enforcement</text>
+
+  <text x="48" y="526" class="mono">1. Preflight Check (can_graft / try_graft / try_deep_graft): Tests declared subtype relation Out(first) &lt;: In(second) without calling node.f (counter == 0).</text>
+  <text x="48" y="546" class="mono">2. Composition Order &amp; Naming: If NodeA runs first and NodeB second, the composed operator is "NodeB ∘ NodeA", and 3-stage deep graft is "NodeC ∘ NodeB ∘ NodeA".</text>
+  <text x="48" y="566" class="mono">3. Runtime Wrapper Contract: comp_fn = x -&gt; second(first(x)) invokes each GraftNode wrapper, enforcing input dispatch (MethodError if bypassed)</text>
+  <text x="48" y="584" class="mono">   and Core.typeassert(y, OutType) at every intermediate boundary (TypeError if an intermediate node function returns an undeclared runtime type).</text>
+  <text x="48" y="604" class="mono">4. Typed Verdicts: Returns Accepted(node, ...), Rejected(reason, ...), or Incomplete(reason, ...) instead of leaking numeric Inf sentinels.</text>
+</svg>

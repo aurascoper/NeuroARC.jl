@@ -1,0 +1,26 @@
+name = "NeuroARC"
+uuid = "a3f5a15a-93e1-4bd8-99e6-0563b78be05c"
+authors = ["Hunter Kinder <hkinder@stlteach.org>", "NeuroARC Contributors"]
+version = "0.1.0"
+
+[weakdeps]
+JACC = "0979c8fe-16a4-4796-9b82-89a9f10403ea"
+Metal = "dde4c033-4e86-420c-a63e-0dd931031962"
+Turing = "fce5fe82-541a-59a6-adf8-730c64b5f9a0"
+
+[extensions]
+NeuroARCJACCExt = "JACC"
+NeuroARCMetalExt = "Metal"
+NeuroARCTuringExt = "Turing"
+
+[compat]
+julia = "1.10, 1.11, 1.12, 1.13"
+JACC = "0.1"
+Metal = "1.0"
+Turing = "0.33, 0.34"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]

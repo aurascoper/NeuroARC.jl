@@ -1,0 +1,57 @@
+digraph FigureB2_AgentExecutionAndVerification {
+    rankdir=TB;
+    fontname="Helvetica";
+    fontsize=11;
+    labelloc="t";
+    label="Figure B2: NeuroARC Agent Execution and Verification Architecture (Proposed Interface vs Verified Contracts)";
+    node [shape=box, fontname="Helvetica", fontsize=10, style="rounded,filled", fillcolor="#f8fafc"];
+    edge [fontname="Helvetica", fontsize=9];
+
+    subgraph cluster_presynaptic {
+        label="1. Presynaptic Layer (Python Agent Search Strategy)";
+        style="rounded,dashed";
+        color="#475569";
+        AgentState [label="Search Strategy Controller\nState transitions: Focus -> Frustration -> Panic", fillcolor="#e0f2fe"];
+        CandidateGen [label="Candidate Rule & Grid Proposer\nEmits candidate specification and metadata", fillcolor="#e0f2fe"];
+        AgentState -> CandidateGen [label="selects search operator", color="#0284c7", style="solid", penwidth=1.5];
+    }
+
+    subgraph cluster_ffi {
+        label="2. Cross-Language Transport Boundary";
+        style="rounded,dashed";
+        color="#d97706";
+        SharedBuffer [label="Proposed shared-buffer interface\n(Python-to-Julia buffer descriptor handoff;\nownership & concurrency tests required before zero-copy claims)", fillcolor="#fef3c7"];
+    }
+
+    subgraph cluster_membrane {
+        label="3. Criterial Verification Membrane";
+        style="rounded,solid";
+        color="#2563eb";
+        ValidationSuite [label="Independent validation suite\n1. Exact demonstration pair reconstruction\n2. Discrete grid dimension (1..30) & palette (0..9) checks\n3. Structural & topological invariant predicates", fillcolor="#dbeafe"];
+        VerdictAccepted [label="Accepted(artifact, metadata)\nTyped pass verdict", fillcolor="#dcfce7"];
+        VerdictRejected [label="Rejected(reason, detail)\nTyped diagnostic failure (no numeric Inf sentinel)", fillcolor="#fee2e2"];
+        VerdictIncomplete [label="Incomplete(reason, detail)\nMissing prerequisite or budget exhaustion", fillcolor="#fef9c3"];
+
+        ValidationSuite -> VerdictAccepted [label="all predicates hold", color="#2e7d32", style="solid", penwidth=1.8];
+        ValidationSuite -> VerdictRejected [label="predicate violation", color="#c62828", style="dashed", penwidth=1.5];
+        ValidationSuite -> VerdictIncomplete [label="unavailable resource", color="#b45309", style="dotted", penwidth=1.5];
+    }
+
+    subgraph cluster_julia_core {
+        label="4. Julia Core (NeuroARC.jl Typed Composition & Execution)";
+        style="rounded,solid";
+        color="#15803d";
+        TypeGrafting [label="Type-Directed Hyphal Grafting\nPreflight: Out(A) <: In(B)\nRuntime wrapper: x -> second(first(x))", fillcolor="#dcfce7"];
+        BudgetScheduler [label="Compute Budget Scheduler\nAllocates evaluation budget across verified compositions", fillcolor="#f0fdf4"];
+        CompletionCriteria [label="Global validation status &\nExperiment completion criteria\n(Auditable pass/abstain ledger; no unproved convergence claim)", fillcolor="#e2e8f0"];
+
+        TypeGrafting -> BudgetScheduler [label="Accepted(NodeC ∘ NodeB ∘ NodeA)", color="#2e7d32", style="solid", penwidth=1.8];
+        BudgetScheduler -> CompletionCriteria [label="records verified task outcome", color="#1e293b", style="solid", penwidth=1.5];
+    }
+
+    CandidateGen -> SharedBuffer [label="dispatches candidate payload", color="#d97706", style="solid", penwidth=1.5];
+    SharedBuffer -> ValidationSuite [label="presents candidate buffer", color="#2563eb", style="solid", penwidth=1.5];
+    VerdictAccepted -> TypeGrafting [label="enters verified pipeline", color="#2e7d32", style="solid", penwidth=2.0];
+    VerdictRejected -> AgentState [label="structured rejection reason\nupdates search state", color="#c62828", style="dashed", penwidth=1.5];
+    VerdictIncomplete -> CompletionCriteria [label="logged as INCOMPLETE", color="#b45309", style="dotted", penwidth=1.5];
+}
