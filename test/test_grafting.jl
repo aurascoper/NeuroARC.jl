@@ -8,10 +8,11 @@ using Test
 using NeuroARC
 using NeuroARC.HyphalGraftingContract
 
-const SCRATCH_DIR = normpath(joinpath(@__DIR__, "..", "manuscript", "figures"))
+const SCRATCH_DIR = mktempdir()
 const FIGURES_DIR = normpath(joinpath(@__DIR__, "..", "manuscript", "figures"))
 
-mkpath(SCRATCH_DIR)
+atexit(() -> rm(SCRATCH_DIR; force = true, recursive = true))
+
 mkpath(FIGURES_DIR)
 
 println("======================================================================")
@@ -249,6 +250,19 @@ println("======================================================================"
         @test v_cov_tuple isa Accepted
         @test v_cov_tuple.node(3) == 6.0
 
+        # Multi-parameter UnionAll type bounds: Dict{String, Int} <: Dict{<:AbstractString, <:Integer}
+        dict_producer = GraftNode{Int, Dict{String, Int}}("DictProd", "DictProd", n -> Dict("size" => n))
+        dict_consumer = GraftNode{Dict{<:AbstractString, <:Integer}, Int}("DictCons", "DictCons", d -> length(d))
+        dict_bad_consumer = GraftNode{Dict{String, Float64}, Int}("DictBadCons", "DictBadCons", d -> length(d))
+
+        v_dict_ok = try_graft(dict_producer, dict_consumer)
+        @test v_dict_ok isa Accepted
+        @test v_dict_ok.node(99) == 1
+
+        v_dict_bad = try_graft(dict_producer, dict_bad_consumer)
+        @test v_dict_bad isa Rejected
+        @test v_dict_bad.reason == :type_mismatch
+
         # Empty chain -> Incomplete(:empty_chain, ...)
         v_empty = try_deep_graft(GraftNode[])
         @test v_empty isa Incomplete
@@ -376,7 +390,7 @@ println("======================================================================"
         write(svg_b1_scratch, svg_b1)
         write(svg_b2_scratch, svg_b2)
 
-        if SCRATCH_DIR != FIGURES_DIR
+        if get(ENV, "UPDATE_FIGURES", "0") == "1"
             cp(svg_b1_scratch, joinpath(FIGURES_DIR, "figure_b1_typed_grafting.svg"); force = true)
             cp(svg_b2_scratch, joinpath(FIGURES_DIR, "figure_b2_agent_execution.svg"); force = true)
         end

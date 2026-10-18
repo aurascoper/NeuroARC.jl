@@ -15,9 +15,11 @@ Following Peter Tse's neuro-cognitive model of criterial causation \cite{tse2013
   \end{itemize}
   \item \textbf{Stage $t_3$ (Downward Empowerment or Extinction)}:
   \begin{itemize}
-    \item When criteria are satisfied, the candidate is projected onto the invariant subspace $\Pi_{\mathcal{S}}(x)$ and rewarded with downstream compute allocation via an \texttt{Accepted(value, salient\_features, score, detail)} verdict.
-    \item When criteria fail, execution is halted immediately with zero downstream budget consumption, emitting a typed diagnostic \texttt{Rejected(reason, detail, failed\_gates, partial\_score)}.
-    \item When prerequisites or tools are unavailable, the system emits an auditable \texttt{Incomplete(reason, detail)} status, preventing silent fallback.
+    \item When criteria are satisfied, the candidate is projected onto the invariant subspace $\Pi_{\mathcal{S}}(x)$ and rewarded with downstream compute allocation via an algebraic verdict\\
+    \texttt{Accepted(value, salient\_features, score, detail)}.
+    \item When criteria fail, execution is halted immediately with zero downstream budget consumption, emitting a typed diagnostic verdict\\
+    \texttt{Rejected(reason, detail, failed\_gates, partial\_score)}.
+    \item When prerequisites or tools are unavailable, the system emits an auditable verdict \texttt{Incomplete(reason, detail)}, preventing silent fallback.
   \end{itemize}
 \end{enumerate}
 

@@ -24,7 +24,7 @@
       sion boundaries for Apple Silicon GPU acceleration via Metal.jl, cross-architecture parallel
       computing via JACC.jl, and probabilistic calibration via Turing.jl. This package structure
       is accompanied by an automated continuous integration pipeline that compiles this manuscript
-      and validates 321 unit tests under clean runners.
+      and validates 325 unit tests under clean runners.
 
 
 1    Introduction and Epistemic Architecture Boundaries
@@ -48,11 +48,9 @@ visual reasoning. A central design principle of our research program is strict e
       focused exclusively on whether an aesthetic preference relation escapes the 2006 Scrambling
       Theorem or is carried by a functional bijection [2]. No ARC benchmarks, prompt engineering
       tokens, or ungrounded algorithmic operators enter Track 2.
-
     • Track 3 (Antigravity and NeuroARC.jl Track): The operational software platform
       for criterial causation, informational logic gates, pedagogical scaﬀolding, morphological grid
       invariants, and psycholinguistic chain-of-thought mediation.
-
    By maintaining this separation, NeuroARC.jl formalizes cognitive operations as veriﬁable com-
 putational contracts without burdening foundational perceptual theorems with application-speciﬁc
 implementation details.
@@ -66,33 +64,29 @@ NeuroARC.jl, this process is operationalized as a tri-stage temporal architectur
     1. Stage t1 (Setting of Informational Criteria): The controller conﬁgures acceptance
        thresholds τ , projection operators ΠS , and assigns initial computational token budgets based
        on generative entrenchment [4].
-
     2. Stage t2 (Input Arrival and Informational Gating): Candidate transformations or
        sensory grid states x ∈ X are evaluated across a composition of criterial logic gates:
-
          • Threshold Gate: g(x) = 1{c(x) ≥ τ }
          • Bandpass Gate: g(x) = 1{τmin ≤ c(x) ≤ τmax }
          • Subtype Gate: g(A, B) = 1{Out(A) <: In(B)} (evaluated with zero executions of
            node functions)
                                                       ∏K
-         • Conjunction Gate (AND): G∧ (x) =    k=1 1{ck (x) ≥ τk }
-
-                                              k=1 1{ck (x) ≥ τk }
-         • Disjunction Gate (OR): G∨ (x) = maxK
-                                         {∑                            }
-                                             m=1 1{cm (x) ≥ τm } ≥ k
-                                           N
-         • K-of-N Gate: Gk/N (x) = 1
+         • Conjunction Gate (AND): G∧ (x) =     k=1 1{ck (x) ≥ τk }
+         • Disjunction Gate (OR): G∨ (x) = maxk=1 1{ck (x) ≥ τk }
+                                               K
+                                     {∑                         }
+         • K-of-N Gate: Gk/N (x) = 1   N
+                                       m=1 1{cm (x) ≥ τm  } ≥ k
 
     3. Stage t3 (Downward Empowerment or Extinction):
-
          • When criteria are satisﬁed, the candidate is projected onto the invariant subspace ΠS (x)
-           and rewarded with downstream compute allocation via an Accepted(value, salient_features,
-           score, detail) verdict.
+           and rewarded with downstream compute allocation via an algebraic verdict
+           Accepted(value, salient_features, score, detail).
          • When criteria fail, execution is halted immediately with zero downstream budget con-
-           sumption, emitting a typed diagnostic Rejected(reason, detail, failed_gates, partial_score).
-         • When prerequisites or tools are unavailable, the system emits an auditable Incomplete(reason,
-           detail) status, preventing silent fallback.
+           sumption, emitting a typed diagnostic verdict
+           Rejected(reason, detail, failed_gates, partial_score).
+         • When prerequisites or tools are unavailable, the system emits an auditable verdict
+           Incomplete(reason, detail), preventing silent fallback.
 
     Furthermore, the pedagogical scaﬀolding loop of Wood, Bruner, and Ross [5] is instantiated as
 a controller across six tutorial functions (Recruitment, Reduction in Degrees of Freedom, Direction
@@ -168,10 +162,12 @@ gates:
     1. Train Exact Reconstruction: The candidate transformation must reconstruct 100% of
        cells across all training demonstration output grids (Yi = f (Xi )) with maximum cell residual
        equal to 0.0.
+
     2. Informative Leave-One-Out (LOO) Evaluation: Cross-validation across demonstration
        pairs is evaluated to detect parameter overﬁtting. When a rule contains free parameters,
        LOO folds are marked informative; parameter-free macros require veriﬁed cross-task ﬁring to
        avoid single-task memorization.
+
     3. Equivariance Gating: Where task semantics exhibit geometric invariance, the candidate
        must commute with the dihedral group D8 and background-preserving color permutations.
        If a candidate depends on directional or absolute spatial coordinates, equivariance is ﬂagged
@@ -186,24 +182,26 @@ solver processes terminate.
 
 
 5     Package Architecture and Zero-Dependency Core Isolation
-To maintain high execution velocity and reproducible execution on minimal environments, NeuroARC.jl
+To maintain high execution velocity and reproducibility on minimal environments, NeuroARC.jl
 enforces zero-dependency core isolation. The core library relies exclusively on the Julia standard
 library, implementing lightweight internal parsers and memory buﬀers without external binary
 dependencies.
 
 5.1    Standard Julia Package Skeleton
 The repository adheres to the standard Julia package layout:
-    • Project.toml: Declares package UUID (a3f5a15a-93e1-4bd8-99e6-0563b78be05c), seman-
-      tic versioning bounds on Julia (1.10 through 1.13), and conditional extension dependencies.
+    • Project.toml: Declares package UUID
+      (a3f5a15a-93e1-4bd8-99e6-0563b78be05c), version bounds on Julia (1.10 to 1.13), and
+      conditional extension dependencies.
+
     • src/NeuroARC.jl: Exposes public APIs for grid representations, component analysis, crite-
       rial calculus, and hyphal grafting contracts.
+
     • ext/: Houses conditional package extensions that load only when external packages are
       present in the environment:
-         • NeuroARCMetalExt.jl: GPU acceleration for Apple Silicon hardware via Metal.jl.
-         • NeuroARCJACCExt.jl: Cross-hardware performance portability via JACC.jl.
-         • NeuroARCTuringExt.jl: Probabilistic Markov Chain Monte Carlo calibration via Turing.jl.
-    • test/runtests.jl: Comprehensive unit test suite executing 321 assertions across core types,
-      criterial gates, grafting contracts, and epistemic text cleanliness.
+
+         • NeuroARCMetalExt.jl: GPU acceleration for Apple Silicon via Metal.jl.
+         • NeuroARCJACCExt.jl: Cross-hardware portability via JACC.jl.
+         • NeuroARCTuringExt.jl: Bayesian MCMC calibration via Turing.jl.
 
                                                   4
                                    Figure B2: NeuroARC Agent Execution and Verification Architecture (Proposed Interface vs Verified Contracts)
@@ -263,7 +261,10 @@ veriﬁcation membrane, and the veriﬁed Julia composition core.
 
 
                                                                                                     5
-5.2    Continuous Integration and Clean Runners
+    • test/runtests.jl: Comprehensive unit test suite executing 325 assertions across core types,
+      criterial gates, grafting contracts, and epistemic text cleanliness.
+
+5.2    Continuous Integration and Clean Runners
 The repository includes GitHub Actions CI workﬂows conﬁgured for clean runners on Ubuntu
 and macOS. These workﬂows verify that the package compiles and passes all unit tests without
 pre-installing non-standard dependencies, ensuring that clean installations remain fully functional.
@@ -288,9 +289,9 @@ broader public release, driven by three strategic constraints:
        protects submission provenance, prevents licensing ambiguities, and prevents accidental data
        contamination.
 
-    3. Upstream Git Read-Only Boundary: Upstream modules in arc-agi-2-cpu-kaggle-modules
-       remain strictly read-only. Decoupling the cross-language memory boundary between Python
-       and Julia must precede any public interface exposure.
+    3. Upstream Git Read-Only Boundary: Upstream modules in
+       arc-agi-2-cpu-kaggle-modules remain strictly read-only. Decoupling the cross-language
+       memory boundary between Python and Julia must precede any public interface exposure.
 
 6.2    Prerequisites for Public Release
 The transition from private to public repository status is scheduled upon completion of three
@@ -306,7 +307,6 @@ veriﬁable gates:
     Maintaining an internal private repository provides immediate beneﬁts, including immutable Git
 commit hashes for academic citations (Paper B), secure continuous integration, and reproducible
 version control without compromising governance invariants.
-
 
 
 

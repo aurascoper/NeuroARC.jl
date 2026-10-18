@@ -29,19 +29,25 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Tectonic
-        uses: wchargin/setup-tectonic@v3
+        uses: wtfjoke/setup-tectonic@v4
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install poppler-utils for text extraction
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
 
       - name: Compile Manuscript (.tex to .pdf)
         working-directory: manuscript
         run: |
           tectonic main.tex
-          ls -la main.pdf
+          pdftotext -layout main.pdf main.txt
+          ls -la main.pdf main.txt
 
       - name: Verify Text Cleanliness (Zero Em/En Dashes and Quarantined Terms)
         run: |
-          python3 test/check_text_clean.py manuscript/
+          python3 test/check_text_clean.py .
 
       - name: Upload PDF Artifact
         uses: actions/upload-artifact@v4

@@ -17,7 +17,11 @@ def check_text_cleanliness(root_dir):
     # Quarantined terms split to prevent self-detection
     quarantined = [
         "free-will" + " " + "octane",
-        "radiotrophic" + " " + "methanogen"
+        "radiotrophic" + " " + "methanogen",
+        "proto" + "bacter",
+        "radio" + "gyrism",
+        "sobolev" + " " + "chemostatin",
+        "filter-empowered" + " " + "gyre"
     ]
 
     skip_dirs = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "build"}
