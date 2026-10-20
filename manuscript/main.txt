@@ -44,10 +44,10 @@ visual reasoning. A central design principle of our research program is strict e
 
 
                                                         1
-    • Track 2 (Donald Hoﬀman Paper Route): Kept rigorously minimalist, conservative, and
-      focused exclusively on whether an aesthetic preference relation escapes the 2006 Scrambling
-      Theorem or is carried by a functional bijection [2]. No ARC benchmarks, prompt engineering
-      tokens, or ungrounded algorithmic operators enter Track 2.
+    • Track 2 (Coevolutionary Aesthetics and Interface Theory Track): Kept rigorously
+      minimalist, conservative, and focused exclusively on whether an aesthetic preference relation
+      escapes the 2006 Scrambling Theorem or is carried by a functional bijection [2]. No ARC
+      benchmarks, prompt engineering tokens, or ungrounded algorithmic operators enter Track 2.
     • Track 3 (Antigravity and NeuroARC.jl Track): The operational software platform
       for criterial causation, informational logic gates, pedagogical scaﬀolding, morphological grid
       invariants, and psycholinguistic chain-of-thought mediation.
@@ -317,7 +317,7 @@ version control without compromising governance invariants.
 [2] Donald D Hoﬀman, Manish Singh, and Chetan Prakash. Objects of desire: The shape of feasible
     perceptual spaces. Cognitive Science, 39(7):1477 to 1534, 2015.
 
-[3] Peter U Tse. The neural code: Language of the brain. MIT Press, 2013.
+[3] Peter U Tse. The Neural Basis of Free Will: Criterial Causation. MIT Press, 2013.
 
 [4] William C Wimsatt. Developmental constraints, generative entrenchment, and the innate-
     acquired distinction. Integrating Scientiﬁc Disciplines, page 185 to 208, 1986.

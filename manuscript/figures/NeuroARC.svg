@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800"
+     font-family="'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif">
+  <title>NeuroARC.jl: Criterial Causation Architecture</title>
+  <desc>Tri-stage criterial pipeline: criteria setting (t1), typed hyphal grafting and gating (t2), deterministic verification and downward empowerment (t3).</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#727676"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#3186ff"/>
+    </marker>
+  </defs>
+
+  <!-- Canvas -->
+  <rect x="0" y="0" width="1200" height="800" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="600" y="42" text-anchor="middle" font-size="26" font-weight="700" fill="#000000">NeuroARC.jl</text>
+  <text x="600" y="66" text-anchor="middle" font-size="14" font-style="italic" fill="#555555">Tri-stage criterial causation : typed hyphal grafting : deterministic verification</text>
+
+  <!-- ======================= BAND 1 : t1 ======================= -->
+  <rect x="20" y="90" width="1160" height="190" rx="12" fill="#fafafa" stroke="#e3e3e3" stroke-width="1"/>
+  <text x="36" y="116" font-size="14" font-weight="600" fill="#3186ff">t1: Setting of Informational Criteria</text>
+
+  <!-- Parameter config stack -->
+  <rect x="40" y="134" width="200" height="38" rx="8" fill="#ffffff" stroke="#e3e3e3"/>
+  <text x="52" y="152" font-size="12" font-weight="600" fill="#000000">tau: acceptance threshold</text>
+  <text x="52" y="166" font-size="10" font-style="italic" fill="#727676">configurable scalar</text>
+
+  <rect x="40" y="182" width="200" height="38" rx="8" fill="#ffffff" stroke="#e3e3e3"/>
+  <text x="52" y="200" font-size="12" font-weight="600" fill="#000000">Pi_S: invariant subspace</text>
+  <text x="52" y="214" font-size="10" font-style="italic" fill="#727676">projection operator</text>
+
+  <rect x="40" y="230" width="200" height="38" rx="8" fill="#ffffff" stroke="#e3e3e3"/>
+  <text x="52" y="248" font-size="12" font-weight="600" fill="#000000">budget: generative entrenchment</text>
+  <text x="52" y="262" font-size="10" font-style="italic" fill="#727676">initial token allocation</text>
+
+  <!-- Six logic gates (3 x 2) -->
+  <rect x="280" y="134" width="280" height="64" rx="8" fill="#ffffff" stroke="#3186ff" stroke-width="1.3"/>
+  <text x="420" y="156" text-anchor="middle" font-size="12" font-weight="600" fill="#000000">Threshold</text>
+  <text x="420" y="178" text-anchor="middle" font-size="11" font-family="monospace" fill="#555555">g(x) = 1{c(x) &gt;= tau}</text>
+
+  <rect x="570" y="134" width="280" height="64" rx="8" fill="#ffffff" stroke="#3186ff" stroke-width="1.3"/>
+  <text x="710" y="156" text-anchor="middle" font-size="12" font-weight="600" fill="#000000">Bandpass</text>
+  <text x="710" y="178" text-anchor="middle" font-size="11" font-family="monospace" fill="#555555">g(x) = 1{tau_min &lt;= c(x) &lt;= tau_max}</text>
+
+  <rect x="860" y="134" width="280" height="64" rx="8" fill="#ffffff" stroke="#3186ff" stroke-width="1.3"/>
+  <text x="1000" y="156" text-anchor="middle" font-size="12" font-weight="600" fill="#000000">Subtype</text>
+  <text x="1000" y="176" text-anchor="middle" font-size="11" font-family="monospace" fill="#555555">g(A,B) = 1{Out(A) &lt;: In(B)}</text>
+  <text x="1000" y="190" text-anchor="middle" font-size="9" font-style="italic" fill="#008052">zero executions</text>
+
+  <rect x="280" y="210" width="280" height="64" rx="8" fill="#ffffff" stroke="#3186ff" stroke-width="1.3"/>
+  <text x="420" y="232" text-anchor="middle" font-size="12" font-weight="600" fill="#000000">Conjunction</text>
+  <text x="420" y="254" text-anchor="middle" font-size="11" font-family="monospace" fill="#555555">G_and(x) = prod 1{c_k(x) &gt;= tau_k}</text>
+
+  <rect x="570" y="210" width="280" height="64" rx="8" fill="#ffffff" stroke="#3186ff" stroke-width="1.3"/>
+  <text x="710" y="232" text-anchor="middle" font-size="12" font-weight="600" fill="#000000">Disjunction</text>
+  <text x="710" y="254" text-anchor="middle" font-size="11" font-family="monospace" fill="#555555">G_or(x) = max 1{c_k(x) &gt;= tau_k}</text>
+
+  <rect x="860" y="210" width="280" height="64" rx="8" fill="#ffffff" stroke="#3186ff" stroke-width="1.3"/>
+  <text x="1000" y="232" text-anchor="middle" font-size="12" font-weight="600" fill="#000000">K-of-N</text>
+  <text x="1000" y="254" text-anchor="middle" font-size="11" font-family="monospace" fill="#555555">G_{k/N}(x) = 1{sum &gt;= k}</text>
+
+  <!-- Band 1 to Band 2 connector -->
+  <line x1="600" y1="282" x2="600" y2="298" stroke="#727676" stroke-width="1.3" marker-end="url(#arrow)"/>
+
+  <!-- ======================= BAND 2 : t2 ======================= -->
+  <rect x="20" y="300" width="1160" height="200" rx="12" fill="#fafafa" stroke="#e3e3e3" stroke-width="1"/>
+  <text x="36" y="326" font-size="14" font-weight="600" fill="#3186ff">t2: Input Arrival and Informational Gating</text>
+
+  <!-- Node A -->
+  <rect x="60" y="346" width="220" height="80" rx="10" fill="#ffffff" stroke="#3186ff" stroke-width="1.5"/>
+  <text x="170" y="370" text-anchor="middle" font-size="11" font-weight="600" fill="#000000">Node A :: GraftNode{In_A, Out_A}</text>
+  <text x="170" y="388" text-anchor="middle" font-size="10" font-family="monospace" fill="#555555">PolynominoGraph -&gt; ColorMappedGrid</text>
+  <text x="170" y="406" text-anchor="middle" font-size="9" font-style="italic" fill="#727676">A.f : implementation</text>
+
+  <!-- Preflight arrow A to B -->
+  <line x1="280" y1="386" x2="540" y2="386" stroke="#3186ff" stroke-width="1.5" marker-end="url(#arrow-blue)"/>
+  <text x="410" y="368" text-anchor="middle" font-size="11" font-weight="600" fill="#3186ff">Preflight: Out(A) &lt;: In(B)</text>
+  <text x="410" y="404" text-anchor="middle" font-size="9" font-style="italic" fill="#727676">static subtyping: zero executions</text>
+
+  <!-- Node B -->
+  <rect x="540" y="346" width="220" height="80" rx="10" fill="#ffffff" stroke="#3186ff" stroke-width="1.5"/>
+  <text x="650" y="370" text-anchor="middle" font-size="11" font-weight="600" fill="#000000">Node B :: GraftNode{In_B, Out_B}</text>
+  <text x="650" y="388" text-anchor="middle" font-size="10" font-family="monospace" fill="#555555">ColorMappedGrid -&gt; ColorMappedGrid</text>
+  <text x="650" y="406" text-anchor="middle" font-size="9" font-style="italic" fill="#727676">B.f : implementation</text>
+
+  <!-- Runtime wrapper -->
+  <rect x="60" y="440" width="720" height="44" rx="8" fill="#dcf1ff" stroke="#3186ff" stroke-width="1"/>
+  <text x="420" y="458" text-anchor="middle" font-size="11" font-family="monospace" fill="#000000">(B o A)(x) = B(A(x))</text>
+  <text x="420" y="474" text-anchor="middle" font-size="10" font-family="monospace" fill="#555555">with Core.typeassert(N.f(x), Out_N) at every boundary</text>
+
+  <!-- Verdict emission -->
+  <rect x="820" y="346" width="340" height="140" rx="10" fill="#ffffff" stroke="#3186ff" stroke-width="1.5"/>
+  <text x="990" y="366" text-anchor="middle" font-size="12" font-weight="600" fill="#3186ff">Verdict emission</text>
+
+  <rect x="832" y="378" width="316" height="28" rx="14" fill="#daf9d4" stroke="#008052"/>
+  <text x="840" y="396" font-size="10" font-family="monospace" fill="#008052">Accepted: value, features, score, detail</text>
+
+  <rect x="832" y="412" width="316" height="28" rx="14" fill="#ffdeec" stroke="#de2d29"/>
+  <text x="840" y="430" font-size="10" font-family="monospace" fill="#de2d29">Rejected: reason, failed_gates, partial_score</text>
+
+  <rect x="832" y="446" width="316" height="28" rx="14" fill="#fff3d6" stroke="#b58900"/>
+  <text x="840" y="464" font-size="10" font-family="monospace" fill="#b58900">Incomplete: reason, detail</text>
+
+  <!-- Band 2 to Band 3 connector -->
+  <line x1="600" y1="502" x2="600" y2="518" stroke="#727676" stroke-width="1.3" marker-end="url(#arrow)"/>
+
+  <!-- ======================= BAND 3 : t3 ======================= -->
+  <rect x="20" y="520" width="1160" height="220" rx="12" fill="#fafafa" stroke="#e3e3e3" stroke-width="1"/>
+  <text x="36" y="546" font-size="14" font-weight="600" fill="#3186ff">t3: Downward Empowerment or Extinction</text>
+
+  <!-- Gate 1 -->
+  <rect x="60" y="566" width="280" height="76" rx="10" fill="#ffffff" stroke="#3186ff" stroke-width="1.5"/>
+  <text x="200" y="590" text-anchor="middle" font-size="13" font-weight="600" fill="#000000">Train Exact Reconstruction</text>
+  <text x="200" y="608" text-anchor="middle" font-size="10" font-family="monospace" fill="#555555">100% cells; max residual = 0.0</text>
+  <text x="200" y="628" text-anchor="middle" font-size="9" font-style="italic" fill="#727676">gate 1 of 3</text>
+
+  <line x1="340" y1="604" x2="380" y2="604" stroke="#727676" stroke-width="1.3" marker-end="url(#arrow)"/>
+
+  <!-- Gate 2 -->
+  <rect x="380" y="566" width="280" height="76" rx="10" fill="#ffffff" stroke="#3186ff" stroke-width="1.5"/>
+  <text x="520" y="590" text-anchor="middle" font-size="13" font-weight="600" fill="#000000">Informative Leave-One-Out</text>
+  <text x="520" y="608" text-anchor="middle" font-size="10" font-family="monospace" fill="#555555">cross-fold parameter check</text>
+  <text x="520" y="628" text-anchor="middle" font-size="9" font-style="italic" fill="#727676">gate 2 of 3</text>
+
+  <line x1="660" y1="604" x2="700" y2="604" stroke="#727676" stroke-width="1.3" marker-end="url(#arrow)"/>
+
+  <!-- Gate 3 -->
+  <rect x="700" y="566" width="280" height="76" rx="10" fill="#ffffff" stroke="#3186ff" stroke-width="1.5"/>
+  <text x="840" y="590" text-anchor="middle" font-size="13" font-weight="600" fill="#000000">Equivariance Gating</text>
+  <text x="840" y="608" text-anchor="middle" font-size="10" font-family="monospace" fill="#555555">D_4 + background-preserving color perms</text>
+  <text x="840" y="628" text-anchor="middle" font-size="9" font-style="italic" fill="#727676">gate 3 of 3</text>
+
+  <!-- Verdict node -->
+  <line x1="980" y1="604" x2="1020" y2="604" stroke="#727676" stroke-width="1.3" marker-end="url(#arrow)"/>
+  <rect x="1020" y="560" width="140" height="88" rx="10" fill="#ffffff" stroke="#3186ff" stroke-width="1.5"/>
+  <text x="1090" y="584" text-anchor="middle" font-size="12" font-weight="600" fill="#3186ff">Verdict</text>
+  <text x="1090" y="602" text-anchor="middle" font-size="10" fill="#000000">all gates pass?</text>
+  <text x="1090" y="620" text-anchor="middle" font-size="10" font-style="italic" fill="#727676">-&gt; see outcomes</text>
+  <text x="1090" y="638" text-anchor="middle" font-size="10" font-family="monospace" fill="#727676">Pi_S(x)</text>
+
+  <!-- Separator + outcomes -->
+  <line x1="60" y1="652" x2="1160" y2="652" stroke="#e3e3e3" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="1156" y="646" text-anchor="end" font-size="10" font-style="italic" fill="#727676">possible verdicts</text>
+
+  <!-- Accepted -->
+  <rect x="60" y="666" width="340" height="44" rx="8" fill="#daf9d4" stroke="#008052" stroke-width="1"/>
+  <text x="72" y="685" font-size="12" font-weight="600" fill="#008052">Accepted</text>
+  <text x="72" y="702" font-size="10" fill="#008052">project onto Pi_S(x) : allocate downstream compute</text>
+
+  <!-- Rejected -->
+  <rect x="430" y="666" width="340" height="44" rx="8" fill="#ffdeec" stroke="#de2d29" stroke-width="1"/>
+  <text x="442" y="685" font-size="12" font-weight="600" fill="#de2d29">Rejected</text>
+  <text x="442" y="702" font-size="10" fill="#de2d29">halt : zero budget : emit diagnostic verdict</text>
+
+  <!-- Incomplete -->
+  <rect x="800" y="666" width="340" height="44" rx="8" fill="#fff3d6" stroke="#b58900" stroke-width="1"/>
+  <text x="812" y="685" font-size="12" font-weight="600" fill="#b58900">Incomplete</text>
+  <text x="812" y="702" font-size="10" fill="#b58900">prerequisite or tool unavailable : silent fallback forbidden</text>
+
+  <!-- Epistemic boundary note -->
+  <text x="600" y="760" text-anchor="middle" font-size="11" font-style="italic" fill="#727676">The verifier certifies demonstration-contract compliance and structural invariants.</text>
+  <text x="600" y="776" text-anchor="middle" font-size="11" font-style="italic" fill="#727676">It does not certify ground-truth accuracy on held-out test grids.</text>
+
+  <!-- Footer tag -->
+  <text x="1180" y="796" text-anchor="end" font-size="9" fill="#a0a0a0">NeuroARC.jl : v0.1.0 : draft 2026-10</text>
+</svg>
