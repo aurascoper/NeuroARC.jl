@@ -407,13 +407,17 @@ using NeuroARC
         t_out = copy(t_in); t_out[4, 3] = Int8(1)
         task_geo = ARCTask("geo_task", [Demonstration(GridState(t_in), GridState(t_out))], [GridState(t_in)])
 
-        # Correct rule depolarizes membrane to 0.0
+        # Correct rule depolarizes membrane with typed Accepted verdict (no Inf sentinel)
         good_rule = MarkerLineReflectionRule(2; axis_candidate=:point)
-        @test depolarize_membrane(good_rule, task_geo) == 0.0
+        v_good = depolarize_membrane(good_rule, task_geo)
+        @test v_good isa NeuroARC.TransjectionCalculus.Accepted
+        @test v_good.empowerment_score == 1.0
 
-        # Wrong rule violates invariant, membrane potential spikes to Inf
+        # Wrong rule violates invariant and returns typed Rejected verdict (no Inf sentinel)
         bad_rule = ArcGeyserRule(1; beam_color=5)
-        @test isinf(depolarize_membrane(bad_rule, task_geo))
+        v_bad = depolarize_membrane(bad_rule, task_geo)
+        @test v_bad isa NeuroARC.TransjectionCalculus.Rejected
+        @test v_bad.reason == :train_exact_failed
     end
 
 end

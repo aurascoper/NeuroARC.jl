@@ -16,6 +16,11 @@ export
     TrainExactEvidence,
     InformativeLOOEvidence,
     EquivarianceEvidence,
+    CANONICAL_D8_TRANSFORMS,
+    SYMMETRY_GROUP_TRANSFORMS,
+    ORDERED_SYMMETRY_SUBGROUPS,
+    group_transforms,
+    compute_supported_subgroups,
 
     # Rules
     MarkerLineReflectionRule,
@@ -44,6 +49,8 @@ export
     verify_candidate,
     depolarize_membrane,
     refit_rule_parameters,
+    rule_excluded_colors,
+    rule_free_param_count,
     apply_d8_transform,
 
     # Bridge & compiler
@@ -177,8 +184,6 @@ include("rules/reflection.jl")
 include("rules/geyser.jl")
 include("rules/gyrism.jl")
 include("rules/extensions.jl")
-include("verifier/loo.jl")
-include("bridge/json_parser.jl")
 include("transjection/calculus.jl")
 include("transjection/grafting.jl")
 
@@ -186,6 +191,8 @@ using .TransjectionCalculus
 using .HyphalGraftingContract
 using .TransjectionCalculus: Accepted, Rejected, Incomplete
 
+include("verifier/loo.jl")
+include("bridge/json_parser.jl")
 include("backends.jl")
 
 end # module NeuroARC

@@ -1676,6 +1676,15 @@ Executes an 8-Fold `D_8` Dihedral Conjugate Consensus Weave across `candidate_fn
    `attempt_1` and `attempt_2` grids (`attempt_2 != attempt_1` whenever multiple distinct
    hypotheses exist).
 """
+function _eval_weave_candidate_matrix(fn, mat::Matrix{Int})::Matrix{Int}
+    res = fn(mat)
+    if res isa GridState
+        return Matrix{Int}(res.cells)
+    else
+        return Matrix{Int}(res)
+    end
+end
+
 function execute_d8_fold_consensus_weave(
     candidate_fns::AbstractVector,
     train_pairs::Vector{Tuple{Matrix{Int}, Matrix{Int}}},
@@ -1696,10 +1705,20 @@ function execute_d8_fold_consensus_weave(
             # Verify Informative LOO across all holdout folds under conjugate g^-1 o fn o g
             loo_passed = true
             for holdout_idx in 1:n_train
+                fn_fold = if fn isa AbstractGridRule
+                    folded_sub = Demonstration[
+                        Demonstration(GridState(apply_dihedral(inp, op)), GridState(apply_dihedral(exp_out, op)))
+                        for (pair_idx, (inp, exp_out)) in enumerate(train_pairs) if pair_idx != holdout_idx
+                    ]
+                    refit_rule_parameters(fn, folded_sub)
+                else
+                    fn
+                end
+
                 for (pair_idx, (inp, exp_out)) in enumerate(train_pairs)
                     pair_idx == holdout_idx && continue
                     folded_in  = apply_dihedral(inp, op)
-                    folded_out = fn(folded_in)
+                    folded_out = _eval_weave_candidate_matrix(fn_fold, folded_in)
                     unfolded   = invert_dihedral(folded_out, op)
                     if unfolded != exp_out
                         loo_passed = false
@@ -1707,9 +1726,10 @@ function execute_d8_fold_consensus_weave(
                     end
                 end
                 !loo_passed && break
-                # Check held-out fold
+                # Check held-out fold with refitted rule
                 ho_in, ho_exp = train_pairs[holdout_idx]
-                ho_pred = invert_dihedral(fn(apply_dihedral(ho_in, op)), op)
+                ho_folded_out = _eval_weave_candidate_matrix(fn_fold, apply_dihedral(ho_in, op))
+                ho_pred = invert_dihedral(ho_folded_out, op)
                 if ho_pred != ho_exp
                     loo_passed = false
                     break
@@ -1717,7 +1737,16 @@ function execute_d8_fold_consensus_weave(
             end
 
             if loo_passed
-                pred = invert_dihedral(fn(apply_dihedral(test_input, op)), op)
+                fn_full = if fn isa AbstractGridRule
+                    all_folded = Demonstration[
+                        Demonstration(GridState(apply_dihedral(inp, op)), GridState(apply_dihedral(exp_out, op)))
+                        for (inp, exp_out) in train_pairs
+                    ]
+                    refit_rule_parameters(fn, all_folded)
+                else
+                    fn
+                end
+                pred = invert_dihedral(_eval_weave_candidate_matrix(fn_full, apply_dihedral(test_input, op)), op)
                 vote_counts[pred] = get(vote_counts, pred, 0) + 1
                 if !haskey(first_label, pred)
                     first_label[pred] = "D8Weave($(fn_name),rot=$(op.k_rot),flip=$(op.flip))"

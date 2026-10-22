@@ -65,10 +65,20 @@ function circulate_gyre(grid::Union{GridState, AbstractMatrix{<:Integer}};
         return GridState(result)
     end
 
-    # Clear non-center foreground and rotate
+    # Pass 1: Clear all movable foreground cells in target buffer first so rotating
+    # multi-pixel polyominoes never overwrite newly placed pixels in scan order.
+    c_col_int8 = Int8(center_color)
     for r in 1:rows, c in 1:cols
         val = cells[r, c]
-        if val != bg && (center_color < 0 || val != Int8(center_color))
+        if val != bg && (center_color < 0 || val != c_col_int8)
+            result[r, c] = bg
+        end
+    end
+
+    # Pass 2: Place rotated foreground cells from unmodified source grid
+    for r in 1:rows, c in 1:cols
+        val = cells[r, c]
+        if val != bg && (center_color < 0 || val != c_col_int8)
             # Offset relative to center
             dr = r - c_row
             dc = c - c_col
@@ -90,9 +100,6 @@ function circulate_gyre(grid::Union{GridState, AbstractMatrix{<:Integer}};
 
             if 1 <= nr <= rows && 1 <= nc <= cols
                 result[nr, nc] = val
-                if (nr != r || nc != c) && cells[r, c] == val
-                    result[r, c] = bg
-                end
             end
         end
     end
