@@ -91,19 +91,20 @@ using NeuroARC.HyphalGraftingContract: GraftNode, try_graft, try_deep_graft
         for (tid, mode, n_p, tok, st, sc) in synthetic_audit_data
             append_sealed_row!(
                 ledger;
-                task_id  = tid,
-                dsl_ids  = UInt16[12, 144],
-                ast_expr = "GraftNode(:rule_$(tid)_$(mode))",
-                status   = st,
-                reason   = st == :ACCEPTED ? :verified_pass : :gate_miss,
-                score    = sc,
-                residual = 0.0,
-                n_params = n_p,
-                loo_pass = st == :ACCEPTED ? 3 : 2,
-                loo_tot  = 3,
-                equiv    = :VERIFIED_D8_COLOR,
-                mode     = mode,
-                tokens   = tok
+                task_id                = tid,
+                dsl_ids                = UInt16[12, 144],
+                ast_expr               = "GraftNode(:rule_$(tid)_$(mode))",
+                status                 = st,
+                reason                 = st == :ACCEPTED ? :verified_pass : :gate_miss,
+                score                  = sc,
+                residual               = 0.0,
+                n_params               = n_p,
+                loo_pass               = st == :ACCEPTED ? 3 : 2,
+                loo_tot                = 3,
+                equiv                  = :VERIFIED_D8_COLOR,
+                mode                   = mode,
+                tokens                 = tok,
+                test_quarantine_sealed = true
             )
         end
 

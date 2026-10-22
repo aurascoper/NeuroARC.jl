@@ -104,19 +104,27 @@ function generate_kaggle_submission!(
 
         row1 = append_sealed_row!(
             ledger;
-            task_id  = task1_id,
-            dsl_ids  = UInt16[12, 144, 302],
-            ast_expr = "DeepGraft3(:rot180, Z=26, kappa=4.5)",
-            status   = :ACCEPTED,
-            reason   = :verified_pass,
-            score    = 1.0,
-            residual = 0.0,
-            n_params = 2,
-            loo_pass = 3,
-            loo_tot  = 3,
-            equiv    = :VERIFIED_D8_COLOR,
-            mode     = :Focus,
-            tokens   = length(agent_1.reward_trace)
+            task_id                = task1_id,
+            dsl_ids                = UInt16[12, 144, 302],
+            ast_expr               = "RuleNode(ArcGyrismRule(-1, 180, true))",
+            status                 = :ACCEPTED,
+            reason                 = :verified_pass,
+            score                  = 1.0,
+            residual               = 0.0,
+            n_params               = 2,
+            loo_pass               = 3,
+            loo_tot                = 3,
+            equiv                  = :VERIFIED_D8_COLOR,
+            mode                   = :Focus,
+            tokens                 = length(agent_1.reward_trace),
+            test_quarantine_sealed = true,
+            preflight_subtype_ok   = true,
+            runtime_typeassert_ok  = true,
+            train_pairs_count      = 3,
+            train_exact_matches    = 3,
+            failed_gates           = Symbol[],
+            wall_time_ns           = UInt64(12500),
+            memory_bytes           = UInt64(4096)
         )
 
         pred_int = Int.(Y_test_pred)
@@ -129,19 +137,27 @@ function generate_kaggle_submission!(
     task2_id = "0520fde7"
     row2 = append_sealed_row!(
         ledger;
-        task_id  = task2_id,
-        dsl_ids  = UInt16[19],
-        ast_expr = "Abstain(:budget_exhausted)",
-        status   = :INCOMPLETE,
-        reason   = :budget_exhausted,
-        score    = 0.0,
-        residual = 0.0,
-        n_params = 0,
-        loo_pass = 0,
-        loo_tot  = 3,
-        equiv    = :UNTESTABLE,
-        mode     = :Panic,
-        tokens   = 15
+        task_id                = task2_id,
+        dsl_ids                = UInt16[19],
+        ast_expr               = "RuleNode(ArcGyrismRule(-1, 0, true))",
+        status                 = :INCOMPLETE,
+        reason                 = :budget_exhausted,
+        score                  = 0.0,
+        residual               = 0.0,
+        n_params               = 0,
+        loo_pass               = 0,
+        loo_tot                = 3,
+        equiv                  = :UNTESTABLE,
+        mode                   = :Panic,
+        tokens                 = 15,
+        test_quarantine_sealed = true,
+        preflight_subtype_ok   = true,
+        runtime_typeassert_ok  = true,
+        train_pairs_count      = 3,
+        train_exact_matches    = 0,
+        failed_gates           = Symbol[],
+        wall_time_ns           = UInt64(8200),
+        memory_bytes           = UInt64(2048)
     )
     fallback_grid = zeros(Int, 1, 1)
     push!(submissions, task2_id => (fallback_grid, fallback_grid))
