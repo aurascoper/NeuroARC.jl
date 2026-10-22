@@ -16,9 +16,11 @@ export
     TrainExactEvidence,
     InformativeLOOEvidence,
     EquivarianceEvidence,
+    WarrantScramblingEvidence,
 
     # Rules
     MarkerLineReflectionRule,
+    LegendRelationalRecolorRule,
     GeodesicBarrierFloodRule,
     CorridorWireTraceRule,
     PeriodicStampWithPriorityRule,
@@ -45,6 +47,14 @@ export
     depolarize_membrane,
     refit_rule_parameters,
     apply_d8_transform,
+    dihedral_transform,
+    inverse_dihedral_transform,
+    permute_colors,
+    scramble_in_grid_legend_pair,
+    count_ast_nodes,
+    prune_unwarranted_ast_introns,
+    evaluate_warrant_under_scrambling,
+    evaluate_arc_agi2_loo_and_warrant_gate,
 
     # Bridge & compiler
     parse_json,
@@ -177,6 +187,7 @@ include("rules/reflection.jl")
 include("rules/geyser.jl")
 include("rules/gyrism.jl")
 include("rules/extensions.jl")
+include("verifier/warrant_scrambling.jl")
 include("verifier/loo.jl")
 include("bridge/json_parser.jl")
 include("transjection/calculus.jl")

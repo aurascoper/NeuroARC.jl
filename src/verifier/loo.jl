@@ -256,7 +256,8 @@ Full verification pipeline evaluating:
 3. Informative LOO refit / generalization gate
 4. Three-valued equivariance gate (:passed, :failed, :untestable)
 """
-function verify_candidate(candidate::Candidate, task::ARCTask)::Tuple{Bool, Symbol, Vector{AbstractEvidence}}
+function verify_candidate(candidate::Candidate, task::ARCTask;
+                          check_warrant_scrambling::Bool=(candidate.rule isa LegendRelationalRecolorRule))::Tuple{Bool, Symbol, Vector{AbstractEvidence}}
     evidence = AbstractEvidence[]
 
     # 1. Train-exact replay gate
@@ -283,7 +284,19 @@ function verify_candidate(candidate::Candidate, task::ARCTask)::Tuple{Bool, Symb
         end
     end
 
-    # 3. Equivariance gate
+    # 3. Warrant-Scrambling gate (when enabled or for LegendRelationalRecolorRule)
+    if check_warrant_scrambling
+        ws_ev = evaluate_warrant_under_scrambling(candidate.rule, task)
+        push!(evidence, ws_ev)
+        if !ws_ev.is_warranted_generalizer
+            return (false, :failed, evidence)
+        end
+        if candidate.rule isa LegendRelationalRecolorRule
+            return (true, :passed, evidence)
+        end
+    end
+
+    # 4. Equivariance gate
     eq_ev = evaluate_equivariance(candidate.rule, task)
     push!(evidence, eq_ev)
 

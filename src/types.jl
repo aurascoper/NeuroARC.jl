@@ -133,6 +133,30 @@ struct EquivarianceEvidence <: AbstractEvidence
 end
 
 """
+    WarrantScramblingEvidence <: AbstractEvidence
+
+Coevolutionary Warrant-Scrambling and MDL Aesthetic verification evidence for ARC-AGI-2:
+- `train_accuracy`: Exact replay match fraction across training pairs.
+- `color_scrambling_warrant`: Commutation fraction under cyclic + out-of-train palette bijections `pi in S_10`.
+- `spatial_scrambling_warrant`: Commutation fraction under dihedral `D_4` transforms.
+- `legend_scrambling_warrant`: Commutation fraction under in-grid instruction legend swaps.
+- `aesthetic_mdl_score`: Minimum Description Length prior `exp(-alpha_mdl * max(ast_node_count - 1, 0))`.
+- `composite_fitness`: Weighted fitness `0.50*train + 0.25*color + 0.15*spatial + 0.10*mdl`.
+- `is_warranted_generalizer`: True iff `train_accuracy == 1.0 && color_scrambling_warrant == 1.0 && legend_scrambling_warrant == 1.0`.
+- `status`: `:passed`, `:failed`, or `:untestable`.
+"""
+struct WarrantScramblingEvidence <: AbstractEvidence
+    train_accuracy::Float64
+    color_scrambling_warrant::Float64
+    spatial_scrambling_warrant::Float64
+    legend_scrambling_warrant::Float64
+    aesthetic_mdl_score::Float64
+    composite_fitness::Float64
+    is_warranted_generalizer::Bool
+    status::Symbol
+end
+
+"""
     ProvenanceReceipt
 
 Audit receipt recording solver family, checkpoint SHA, seed, budget steps, and cross-task firing.
