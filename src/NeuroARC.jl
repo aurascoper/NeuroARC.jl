@@ -165,7 +165,11 @@ export
     execute_c_abi_zpd_graft!,
     invert_dihedral,
     execute_split_overlay_weave,
-    execute_d8_fold_consensus_weave
+    execute_d8_fold_consensus_weave,
+    NanoscaleRNATrackerSpec,
+    compute_kinematic_recoil_keV,
+    compute_rna_radiochemical_background,
+    evaluate_ssna_track_quarantine
 
 include("types.jl")
 include("component.jl")

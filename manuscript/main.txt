@@ -46,7 +46,7 @@ visual reasoning. A central design principle of our research program is strict e
                                                         1
     • Track 2 (Coevolutionary Aesthetics and Interface Theory Track): Kept rigorously
       minimalist, conservative, and focused exclusively on whether an aesthetic preference relation
-      escapes the 2006 Scrambling Theorem or is carried by a functional bijection [2]. No ARC
+      escapes the 2006 Scrambling Theorem or is carried by a functional bijection [3]. No ARC
       benchmarks, prompt engineering tokens, or ungrounded algorithmic operators enter Track 2.
     • Track 3 (Antigravity and NeuroARC.jl Track): The operational software platform
       for criterial causation, informational logic gates, pedagogical scaﬀolding, morphological grid
@@ -57,13 +57,13 @@ implementation details.
 
 
 2     Tri-Stage Criterial Architecture and Logic Gates
-Following Peter Tse’s neuro-cognitive model of criterial causation [3], neural selection is not modeled
+Following Peter Tse’s neuro-cognitive model of criterial causation [4], neural selection is not modeled
 as direct physical determinism, but as informational gating over dynamic synaptic weights. In
 NeuroARC.jl, this process is operationalized as a tri-stage temporal architecture:
 
     1. Stage t1 (Setting of Informational Criteria): The controller conﬁgures acceptance
        thresholds τ , projection operators ΠS , and assigns initial computational token budgets based
-       on generative entrenchment [4].
+       on generative entrenchment [5].
     2. Stage t2 (Input Arrival and Informational Gating): Candidate transformations or
        sensory grid states x ∈ X are evaluated across a composition of criterial logic gates:
          • Threshold Gate: g(x) = 1{c(x) ≥ τ }
@@ -88,7 +88,7 @@ NeuroARC.jl, this process is operationalized as a tri-stage temporal architectur
          • When prerequisites or tools are unavailable, the system emits an auditable verdict
            Incomplete(reason, detail), preventing silent fallback.
 
-    Furthermore, the pedagogical scaﬀolding loop of Wood, Bruner, and Ross [5] is instantiated as
+    Furthermore, the pedagogical scaﬀolding loop of Wood, Bruner, and Ross [6] is instantiated as
 a controller across six tutorial functions (Recruitment, Reduction in Degrees of Freedom, Direction
 Maintenance, Marking Critical Features, Frustration Control, and Demonstration), managing state
 transitions across Focus, Frustration, and Panic modes.
@@ -156,29 +156,115 @@ A critical challenge in visual abstraction is solipsistic overﬁtting, where ca
 ments an isolated veriﬁcation harness:
 
                                                                                                                                            3
-4.1    Veriﬁcation Invariants
+4.1   Veriﬁcation Invariants
 Before any candidate is admitted into the veriﬁed execution pool, it must satisfy three deterministic
 gates:
-    1. Train Exact Reconstruction: The candidate transformation must reconstruct 100% of
-       cells across all training demonstration output grids (Yi = f (Xi )) with maximum cell residual
-       equal to 0.0.
 
-    2. Informative Leave-One-Out (LOO) Evaluation: Cross-validation across demonstration
-       pairs is evaluated to detect parameter overﬁtting. When a rule contains free parameters,
-       LOO folds are marked informative; parameter-free macros require veriﬁed cross-task ﬁring to
-       avoid single-task memorization.
+  1. Train Exact Reconstruction: The candidate transformation must reconstruct 100% of
+     cells across all training demonstration output grids (Yi = f (Xi )) with maximum cell residual
+     equal to 0.0.
 
-    3. Equivariance Gating: Where task semantics exhibit geometric invariance, the candidate
-       must commute with the dihedral group D8 and background-preserving color permutations.
-       If a candidate depends on directional or absolute spatial coordinates, equivariance is ﬂagged
-       as untestable, leading to an explicit Incomplete evaluation rather than a false positive
-       certiﬁcation.
+  2. Informative Leave-One-Out (LOO) Evaluation: Cross-validation across demonstration
+     pairs is evaluated to detect parameter overﬁtting. When a rule contains free parameters,
+     LOO folds are marked informative; parameter-free macros require veriﬁed cross-task ﬁring to
+     avoid single-task memorization.
 
-4.2    Epistemic Limits of Veriﬁcation
+  3. Equivariance Gating: Where task semantics exhibit geometric invariance, the candidate
+     must commute with the dihedral group D8 and background-preserving color permutations.
+     If a candidate depends on directional or absolute spatial coordinates, equivariance is ﬂagged
+     as untestable, leading to an explicit Incomplete evaluation rather than a false positive
+     certiﬁcation.
+
+4.2   Epistemic Limits of Veriﬁcation
 The veriﬁer certiﬁes compliance with observed demonstration contracts and structural invariants; it
 does not and cannot certify ground-truth accuracy on held-out test grids. Post-run test evaluation
 is conducted strictly through isolated scoring harnesses against quarantined held-out labels after
 solver processes terminate.
+
+4.3   Physical Isomorphism: Nanoscale Symmetry Breaking and Foil Quarantine
+The information-theoretic architecture of the NeuroARC.jl veriﬁcation membrane is directly iso-
+morphic to directional nanometer-scale nucleic acid tracking detectors proposed in particle astro-
+physics [2]:
+
+  1. Sample-Complexity Collapse via Symmetry Breaking: In directional recoil detec-
+     tion, measuring head-to-tail recoil asymmetry and diurnal modulation against an anisotropic
+     Galactic wind collapses the required sample size for background rejection from thousands of
+     isotropic events down to 30 to 100 events [2]. Analogously, enforcing dihedral D8 equivariance
+     and 8-fold conjugate consensus weaving collapses combinatorial hypothesis ambiguity across
+     N = 3 demonstration pairs while ﬂagging orientation-bound rules as Incomplete rather than
+     overﬁtting.
+
+  2. Single-Compartment Quarantine Gate: In a modular Mylar, gold foil, and single-
+     stranded nucleic acid (ssNA) tracking stack, a 5 MeV radioactive background α-particle tra-
+     verses 30 µm across multiple pages, whereas a 10 keV signal-induced gold recoil stops within
+     20 nm inside “one and only one” gold ﬁlm [2]. Our Section 4.1 Informative LOO gate and
+     test_quarantine_sealed ﬁrewall enforce this same single-compartment containment bound-
+     ary against high-capacity search bleed-through.
+
+  3. Forensic Terminus Barcoding and Cascade Filtering: Just as 0.7 nm-spaced ssNA
+     strands terminated by 20 to 100 base bundle barcodes (109 × PCR readout) reconstruct
+     exact 10 eV strand-cleavage coordinates and separate primary recoils (255 to 583 severed
+
+                                                 4
+      strands) from secondary knocked-on cascades (18 to 20 strands) [2], the Revision 3 audit
+      ledger (Revision3AuditLedger) chains terminal SHA-256 barcodes (row_seal_sha256) to
+      separate veriﬁed 3-stage ZPD grafts from shallow partial-score noise.
+
+
+
+                                    Figure B2: NeuroARC Agent Execution and Verification Architecture (Proposed Interface vs Verified Contracts)
+
+                                                                            3. Criterial Verification Membrane
+
+                                                                                                       Independent validation suite
+                                                                                               1. Exact demonstration pair reconstruction
+                                                                                        2. Discrete grid dimension (1..30) & palette (0..9) checks
+                                                                                             3. Structural & topological invariant predicates
+
+
+                                                                               all predicates hold   unavailable resource         predicate violation
+
+
+                       Accepted(artifact, metadata)                    Incomplete(reason, detail)                            Rejected(reason, detail)
+                           Typed pass verdict                   Missing prerequisite or budget exhaustion         Typed diagnostic failure (no numeric Inf sentinel)
+
+
+                                                                                                                                            structured rejection reason
+                                     enters verified pipeline
+                                                                                                                                               updates search state
+
+       4. Julia Core (NeuroARC.jl Typed Composition & Execution)                                            1. Presynaptic Layer (Python Agent Search Strategy)
+
+                     Type-Directed Hyphal Grafting
+                                                                                                                             Search Strategy Controller
+                        Preflight: Out(A) <: In(B)                                                                                                                             presents candidate buffer
+                                                                                                                   State transitions: Focus -> Frustration -> Panic
+                  Runtime wrapper: x -> second(first(x))
+
+
+                                   Accepted(NodeC ∘ NodeB ∘ NodeA)             logged as INCOMPLETE                                         selects search operator
+
+
+
+                       Compute Budget Scheduler                                                                           Candidate Rule & Grid Proposer
+         Allocates evaluation budget across verified compositions                                                    Emits candidate specification and metadata
+
+
+                                     records verified task outcome                                                                              dispatches candidate payload
+
+                                                                                                                                        2. Cross-Language Transport Boundary
+
+                           Global validation status &                                                                                       Proposed shared-buffer interface
+                         Experiment completion criteria                                                                                 (Python-to-Julia buffer descriptor handoff;
+        (Auditable pass/abstain ledger; no unproved convergence claim)                                                       ownership & concurrency tests required before zero-copy claims)
+
+
+
+
+Figure 2: Figure B2: NeuroARC Agent Execution and Veriﬁcation Architecture. Depicts
+the separation between presynaptic heuristic search, cross-language transport buﬀers, the criterial
+veriﬁcation membrane, and the veriﬁed Julia composition core.
+
 
 
 5     Package Architecture and Zero-Dependency Core Isolation
@@ -192,76 +278,18 @@ The repository adheres to the standard Julia package layout:
     • Project.toml: Declares package UUID
       (a3f5a15a-93e1-4bd8-99e6-0563b78be05c), version bounds on Julia (1.10 to 1.13), and
       conditional extension dependencies.
-
     • src/NeuroARC.jl: Exposes public APIs for grid representations, component analysis, crite-
       rial calculus, and hyphal grafting contracts.
 
-    • ext/: Houses conditional package extensions that load only when external packages are
+                                                                                                     5
+    • ext/: Houses conditional package extensions that load only when external packages are
       present in the environment:
 
          • NeuroARCMetalExt.jl: GPU acceleration for Apple Silicon via Metal.jl.
          • NeuroARCJACCExt.jl: Cross-hardware portability via JACC.jl.
          • NeuroARCTuringExt.jl: Bayesian MCMC calibration via Turing.jl.
 
-                                                  4
-                                   Figure B2: NeuroARC Agent Execution and Verification Architecture (Proposed Interface vs Verified Contracts)
-
-                                                                           3. Criterial Verification Membrane
-
-                                                                                                      Independent validation suite
-                                                                                              1. Exact demonstration pair reconstruction
-                                                                                       2. Discrete grid dimension (1..30) & palette (0..9) checks
-                                                                                            3. Structural & topological invariant predicates
-
-
-                                                                              all predicates hold   unavailable resource         predicate violation
-
-
-                      Accepted(artifact, metadata)                    Incomplete(reason, detail)                            Rejected(reason, detail)
-                          Typed pass verdict                   Missing prerequisite or budget exhaustion         Typed diagnostic failure (no numeric Inf sentinel)
-
-
-                                                                                                                                           structured rejection reason
-                                    enters verified pipeline
-                                                                                                                                              updates search state
-
-      4. Julia Core (NeuroARC.jl Typed Composition & Execution)                                            1. Presynaptic Layer (Python Agent Search Strategy)
-
-                    Type-Directed Hyphal Grafting
-                                                                                                                            Search Strategy Controller
-                       Preflight: Out(A) <: In(B)                                                                                                                             presents candidate buffer
-                                                                                                                  State transitions: Focus -> Frustration -> Panic
-                 Runtime wrapper: x -> second(first(x))
-
-
-                                  Accepted(NodeC ∘ NodeB ∘ NodeA)             logged as INCOMPLETE                                         selects search operator
-
-
-
-                      Compute Budget Scheduler                                                                           Candidate Rule & Grid Proposer
-        Allocates evaluation budget across verified compositions                                                    Emits candidate specification and metadata
-
-
-                                    records verified task outcome                                                                              dispatches candidate payload
-
-                                                                                                                                       2. Cross-Language Transport Boundary
-
-                          Global validation status &                                                                                       Proposed shared-buffer interface
-                        Experiment completion criteria                                                                                 (Python-to-Julia buffer descriptor handoff;
-       (Auditable pass/abstain ledger; no unproved convergence claim)                                                       ownership & concurrency tests required before zero-copy claims)
-
-
-
-
-Figure 2: Figure B2: NeuroARC Agent Execution and Veriﬁcation Architecture. Depicts
-the separation between presynaptic heuristic search, cross-language transport buﬀers, the criterial
-veriﬁcation membrane, and the veriﬁed Julia composition core.
-
-
-
-
-                                                                                                    5
-    • test/runtests.jl: Comprehensive unit test suite executing 325 assertions across core types,
+    • test/runtests.jl: Comprehensive unit test suite executing 325 assertions across core types,
       criterial gates, grafting contracts, and epistemic text cleanliness.
 
 5.2    Continuous Integration and Clean Runners
@@ -302,27 +330,31 @@ veriﬁable gates:
     2. Execution and cryptographic sealing of the Revision 3 anti-solipsism audit gates and telemetry
        logs (task_audit_table.parquet).
 
-    3. Freezing and public evaluation of the ﬁnal Kaggle competition submission notebook.
+
+                                                  6
+  3. Freezing and public evaluation of the ﬁnal Kaggle competition submission notebook.
 
     Maintaining an internal private repository provides immediate beneﬁts, including immutable Git
 commit hashes for academic citations (Paper B), secure continuous integration, and reproducible
 version control without compromising governance invariants.
 
 
-
-                                                  6
-References
+References
 [1] Francois Chollet. On the measure of intelligence. arXiv preprint arXiv:1911.01547, 2019.
 
-[2] Donald D Hoﬀman, Manish Singh, and Chetan Prakash. Objects of desire: The shape of feasible
+[2] Andrzej Drukier, Katherine Freese, Alejandro Lopez, David Spergel, Charles Cantor, George
+    Church, and Takeshi Sano. New dark matter detectors using dna or rna for nanometer tracking.
+    arXiv preprint arXiv:1206.6809v2, 2015.
+
+[3] Donald D Hoﬀman, Manish Singh, and Chetan Prakash. Objects of desire: The shape of feasible
     perceptual spaces. Cognitive Science, 39(7):1477 to 1534, 2015.
 
-[3] Peter U Tse. The Neural Basis of Free Will: Criterial Causation. MIT Press, 2013.
+[4] Peter U Tse. The Neural Basis of Free Will: Criterial Causation. MIT Press, 2013.
 
-[4] William C Wimsatt. Developmental constraints, generative entrenchment, and the innate-
+[5] William C Wimsatt. Developmental constraints, generative entrenchment, and the innate-
     acquired distinction. Integrating Scientiﬁc Disciplines, page 185 to 208, 1986.
 
-[5] David Wood, Jerome S Bruner, and Gail Ross. The role of tutoring in problem solving. Journal
+[6] David Wood, Jerome S Bruner, and Gail Ross. The role of tutoring in problem solving. Journal
     of Child Psychology and Psychiatry, 17(2):89 to 100, 1976.
 
 
