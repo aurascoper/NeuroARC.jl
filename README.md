@@ -7,6 +7,8 @@
 
 `NeuroARC.jl` is a high performance Julia package for autonomous visual reasoning on discrete grid abstraction benchmarks, including the Abstraction and Reasoning Corpus (ARC).
 
+![NeuroARC.jl Criterial Causation Architecture](manuscript/figures/NeuroARC.svg)
+
 ---
 
 ## 1. Epistemic Architecture Boundaries
