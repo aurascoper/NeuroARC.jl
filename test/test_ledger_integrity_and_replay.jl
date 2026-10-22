@@ -83,12 +83,36 @@ end
             write_columnar_audit_snapshot(snap_file, unsealed_ledger; allow_unverified = true)
             @test verify_post_submission_audit(snap_file; exit_on_error = false) == false
         end
+
+        # High-level audit_verify_candidate_and_append! ALSO requires test_quarantine_sealed with no default
+        task_q_clean = ARCTask("00d62c1b", demos, [GridState(copy(demos[1].input.cells))])
+        @test verify_task_test_quarantine(task_q_clean) == true
+        @test_throws UndefKeywordError audit_verify_candidate_and_append!(
+            ledger, task_q_clean, "RuleNode(ArcGyrismRule(-1, 180, true))"
+        )
+
+        # Even if caller passes test_quarantine_sealed = true, buffer-aliasing between test_inputs and demos is caught
+        task_q_aliased = ARCTask("00d62c1b", demos, [demos[1].output])
+        @test verify_task_test_quarantine(task_q_aliased) == false
+        aliased_ledger = Revision3AuditLedger(commit_sha)
+        aliased_row, v_aliased = audit_verify_candidate_and_append!(
+            aliased_ledger, task_q_aliased, "RuleNode(ArcGyrismRule(-1, 180, true))";
+            test_quarantine_sealed = true
+        )
+        @test v_aliased isa Rejected
+        @test v_aliased.reason == :quarantine_breach
+        @test aliased_row.test_quarantine_sealed == false
+        @test aliased_row.verdict_status == :REJECTED
+        @test aliased_row.verdict_reason == :quarantine_breach
+        @test :gate_r3_5_quarantine in aliased_row.failed_gates
+        @test verify_ledger_cryptographic_seal(aliased_ledger) isa Rejected
     end
 
     # ==========================================================================
     # 2. Single-Field Tamper Detection Across All 28 TaskAuditRow Fields
+    #    (27 Canonical Input Preimage Fields + 1 Output Digest row_seal_sha256)
     # ==========================================================================
-    @testset "2. Exhaustive 28-Field Tamper Detection in TaskAuditRow" begin
+    @testset "2. Exhaustive 28-Field Tamper Detection in TaskAuditRow (27 Inputs + 1 Digest)" begin
         commit_sha = "7f8e9d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e"
         in1 = zeros(Int, 5, 5); in1[3, 3] = 2; in1[2, 2] = 1
         out1 = copy(in1); out1[4, 4] = 1
@@ -101,7 +125,7 @@ end
             IOPair(in2, out2),
             IOPair(in3, out3),
         ]
-        task_base = ARCTask("00d62c1b", demos, [demos[1].input])
+        task_base = ARCTask("00d62c1b", demos, [GridState(copy(demos[1].input.cells))])
 
         base_ledger = Revision3AuditLedger(commit_sha)
         base_row, v_base = audit_verify_candidate_and_append!(
@@ -184,6 +208,7 @@ end
             :row_seal_sha256        => repeat("c", 64),
         ]
 
+        @test fieldcount(TaskAuditRow) == 28
         @test length(tamper_mutations) == fieldcount(TaskAuditRow)
 
         mktempdir() do tmpdir
@@ -336,7 +361,7 @@ end
 
         for (idx, (t_id, ast_str, mode_sym, n_p)) in enumerate(candidate_specs)
             demos_t = task_demos_map[t_id]
-            task_obj = ARCTask(t_id, demos_t, [demos_t[1].input])
+            task_obj = ARCTask(t_id, demos_t, [GridState(copy(demos_t[1].input.cells))])
             row_i, v_i = audit_verify_candidate_and_append!(
                 ledger, task_obj, ast_str;
                 dsl_ids                = UInt16[10 + idx],

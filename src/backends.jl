@@ -388,7 +388,8 @@ end
     compute_canonical_row_seal_sha256(...) -> String
 
 Computes the versioned (`SEAL_SCHEMA_VERSION = "rev3.v2"`) canonical SHA-256 row seal binding
-every verification-critical field of a `TaskAuditRow`.
+every verification-critical input field of a `TaskAuditRow` (`TaskAuditRow` has 28 struct fields
+total: 27 input fields bound into this canonical preimage plus 1 output digest field `row_seal_sha256`).
 """
 function compute_canonical_row_seal_sha256(;
     seal_schema_version::AbstractString = SEAL_SCHEMA_VERSION,
@@ -1209,23 +1210,48 @@ function _evaluate_rule_for_audit_ledger(
 end
 
 """
+    verify_task_test_quarantine(task::ARCTask) -> Bool
+
+Verifies that held-out `task.test_inputs` are strictly isolated from `task.train` demonstrations:
+1. `task.train` must be non-empty (`!isempty(task.train)`).
+2. No `GridState` in `task.test_inputs` may share object or backing-buffer identity (`===`)
+   with any demonstration input (`d.input`, `d.input.cells`) or output (`d.output`, `d.output.cells`)
+   in `task.train`.
+"""
+function verify_task_test_quarantine(task::ARCTask)::Bool
+    isempty(task.train) && return false
+    for t_in in task.test_inputs
+        for d in task.train
+            if (t_in === d.input) || (t_in.cells === d.input.cells) ||
+               (t_in === d.output) || (t_in.cells === d.output.cells)
+                return false
+            end
+        end
+    end
+    return true
+end
+
+"""
     audit_verify_candidate_and_append!(ledger::Revision3AuditLedger, task::ARCTask,
-                                       ast_expr::AbstractString; ...) -> Tuple{TaskAuditRow, AbstractVerdict}
+                                       ast_expr::AbstractString;
+                                       test_quarantine_sealed::Bool, ...) -> Tuple{Union{Nothing, TaskAuditRow}, AbstractVerdict}
 
 Parses `ast_expr` via `parse_allowlisted_candidate_ast`, evaluates the candidate on `task`,
-and appends a cryptographically sealed `TaskAuditRow` to `ledger`.
+verifies both the mandatory caller assertion `test_quarantine_sealed` (no default value) and
+buffer-level isolation `verify_task_test_quarantine(task)`, and appends a cryptographically
+sealed `TaskAuditRow` to `ledger`.
 """
 function audit_verify_candidate_and_append!(
     ledger::Revision3AuditLedger,
     task::ARCTask,
     ast_expr::AbstractString;
+    test_quarantine_sealed::Bool,
     dsl_ids::Vector{UInt16} = UInt16[12],
     n_params::Int = 1,
     mode::Symbol = :Focus,
     tokens::Int = 4,
     preflight_subtype_ok::Bool = true,
     runtime_typeassert_ok::Bool = true,
-    test_quarantine_sealed::Bool = true,
     wall_time_ns::Integer = 1000,
     memory_bytes::Integer = 512
 )
@@ -1236,14 +1262,23 @@ function audit_verify_candidate_and_append!(
     rule = parse_v.value::AbstractGridRule
     ev = _evaluate_rule_for_audit_ledger(rule, task; n_params = n_params)
 
+    quarantine_ok = test_quarantine_sealed && verify_task_test_quarantine(task)
+    failed_gates = copy(ev.failed_gates)
+    if !quarantine_ok && !(:gate_r3_5_quarantine in failed_gates)
+        push!(failed_gates, :gate_r3_5_quarantine)
+    end
+    final_status = quarantine_ok ? ev.verdict_status : :REJECTED
+    final_reason = quarantine_ok ? ev.verdict_reason : :quarantine_breach
+    final_score  = quarantine_ok ? ev.partial_score  : 0.0
+
     row = append_sealed_row!(
         ledger;
         task_id                = task.task_id,
         dsl_ids                = dsl_ids,
         ast_expr               = String(ast_expr),
-        status                 = ev.verdict_status,
-        reason                 = ev.verdict_reason,
-        score                  = ev.partial_score,
+        status                 = final_status,
+        reason                 = final_reason,
+        score                  = final_score,
         residual               = ev.train_ev.max_cell_residual,
         n_params               = n_params,
         loo_pass               = ev.loo_ev.folds_passed,
@@ -1255,12 +1290,13 @@ function audit_verify_candidate_and_append!(
         tokens                 = tokens,
         preflight_subtype_ok   = preflight_subtype_ok,
         runtime_typeassert_ok  = runtime_typeassert_ok,
-        failed_gates           = ev.failed_gates,
+        failed_gates           = failed_gates,
         wall_time_ns           = wall_time_ns,
         memory_bytes           = memory_bytes,
-        test_quarantine_sealed = test_quarantine_sealed
+        test_quarantine_sealed = quarantine_ok
     )
-    return (row, parse_v)
+    out_verdict = quarantine_ok ? parse_v : Rejected(:quarantine_breach, "Task test quarantine check failed on task $(task.task_id).", failed_gates, 0.0)
+    return (row, out_verdict)
 end
 
 """

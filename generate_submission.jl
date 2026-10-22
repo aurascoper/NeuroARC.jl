@@ -93,6 +93,7 @@ function generate_kaggle_submission!(
         train_pairs_1[k] = ([9.8, 5.4, 3.1, 1.4], g_in, g_out)
     end
     X_test_1 = ARCGrid(UInt8[1 2 3; 4 5 6; 7 8 9])
+    quarantine_ok_1 = all(p -> (X_test_1.data !== p[2].data) && (X_test_1.data !== p[3].data), train_pairs_1)
 
     _ = allocate_budget(scheduler, UInt16[12, 144, 302], :Focus)
     agent_1 = AdaptiveCRLAgent(15)
@@ -117,7 +118,7 @@ function generate_kaggle_submission!(
             equiv                  = :VERIFIED_D8_COLOR,
             mode                   = :Focus,
             tokens                 = length(agent_1.reward_trace),
-            test_quarantine_sealed = true,
+            test_quarantine_sealed = quarantine_ok_1,
             preflight_subtype_ok   = true,
             runtime_typeassert_ok  = true,
             train_pairs_count      = 3,
@@ -135,6 +136,8 @@ function generate_kaggle_submission!(
 
     # Task 2: 0520fde7 (Principled Abstention when budget is exhausted on unverified candidate)
     task2_id = "0520fde7"
+    X_test_2 = ARCGrid(UInt8[9 8; 7 6])
+    quarantine_ok_2 = all(p -> (X_test_2.data !== p[2].data) && (X_test_2.data !== p[3].data), train_pairs_1)
     row2 = append_sealed_row!(
         ledger;
         task_id                = task2_id,
@@ -150,7 +153,7 @@ function generate_kaggle_submission!(
         equiv                  = :UNTESTABLE,
         mode                   = :Panic,
         tokens                 = 15,
-        test_quarantine_sealed = true,
+        test_quarantine_sealed = quarantine_ok_2,
         preflight_subtype_ok   = true,
         runtime_typeassert_ok  = true,
         train_pairs_count      = 3,

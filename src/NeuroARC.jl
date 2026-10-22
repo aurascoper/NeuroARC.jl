@@ -137,6 +137,7 @@ export
     read_columnar_audit_snapshot,
     parse_allowlisted_candidate_ast,
     replay_audit_row_candidate,
+    verify_task_test_quarantine,
     audit_verify_candidate_and_append!,
     GLMMCalibrationConfig,
     GLMMPosteriorSummary,
