@@ -16,31 +16,68 @@
 module TransjectionCalculus
 
 export AbstractCriterialGate, ThresholdGate, BandpassGate, SubtypeGate
-export ConjunctionGate, DisjunctionGate, KOfNGate
+export ConjunctionGate, DisjunctionGate, KOfNGate, KofNGate
 export EmpowermentOperator, TransjectionOperator
-export TransjectVerdict, Accepted, Rejected, Incomplete
-export evaluate_gate, transject, compose_transjections
+export TransjectVerdict, AbstractVerdict, Accepted, Rejected, Incomplete
+export evaluate_gate, gate_passed, transject, compose_transjections
 export MorphologicalProfile, compute_morphology, euler_characteristic
 export ScaffoldController, update_scaffold_state!
 
 # ------------------------------------------------------------------------------
-# 1. Algebraic Verdict Types (No numeric Inf sentinels)
+# 1. Algebraic Verdict Types (No numeric Inf or -1.0 sentinels)
 # ------------------------------------------------------------------------------
 
 abstract type TransjectVerdict end
+const AbstractVerdict = TransjectVerdict
 
-struct Accepted{T} <: TransjectVerdict
+struct Accepted{T, F} <: TransjectVerdict
     value::T
-    salient_features::Vector{Float64}
+    salient_features::F
     empowerment_score::Float64
     detail::String
+    function Accepted(value::T, salient_features::F, empowerment_score::Real, detail::AbstractString) where {T, F}
+        sc = Float64(empowerment_score)
+        if !isfinite(sc) || sc == -1.0
+            throw(ArgumentError("Numeric sentinel leakage (Inf/NaN/-1.0) forbidden in Accepted."))
+        end
+        return new{T, F}(value, salient_features, sc, String(detail))
+    end
+end
+
+function Base.getproperty(v::Accepted, sym::Symbol)
+    if sym === :score
+        return getfield(v, :empowerment_score)
+    end
+    return getfield(v, sym)
 end
 
 struct Rejected <: TransjectVerdict
     reason::Symbol
     detail::String
     failed_gate_indices::Vector{Int}
+    failed_gates::Vector{Symbol}
     partial_score::Float64
+    function Rejected(
+        reason::Symbol,
+        detail::AbstractString,
+        failed_gate_indices::Vector{Int},
+        failed_gates::Vector{Symbol},
+        partial_score::Real = 0.0
+    )
+        ps = Float64(partial_score)
+        if !isfinite(ps) || ps == -1.0
+            throw(ArgumentError("Numeric sentinel leakage (Inf/NaN/-1.0) forbidden in Rejected."))
+        end
+        return new(reason, String(detail), failed_gate_indices, failed_gates, ps)
+    end
+end
+
+function Rejected(reason::Symbol, detail::AbstractString, failed_gate_indices::Vector{Int}, partial_score::Real = 0.0)
+    return Rejected(reason, detail, failed_gate_indices, Symbol[], partial_score)
+end
+
+function Rejected(reason::Symbol, detail::AbstractString, failed_gates::Vector{Symbol}, partial_score::Real = 0.0)
+    return Rejected(reason, detail, Int[], failed_gates, partial_score)
 end
 
 struct Incomplete <: TransjectVerdict
@@ -60,6 +97,8 @@ struct ThresholdGate{F, T <: Real} <: AbstractCriterialGate
     functional::F
     threshold::T
 end
+ThresholdGate(name::Symbol, functional::F, threshold::T) where {F, T <: Real} =
+    ThresholdGate{F, T}(String(name), functional, threshold)
 
 # Bandpass Gate: low <= f(x) <= high
 struct BandpassGate{F, T <: Real} <: AbstractCriterialGate
@@ -68,6 +107,8 @@ struct BandpassGate{F, T <: Real} <: AbstractCriterialGate
     low::T
     high::T
 end
+BandpassGate(name::Symbol, functional::F, low::T, high::T) where {F, T <: Real} =
+    BandpassGate{F, T}(String(name), functional, low, high)
 
 # Subtyping Gate: Out(A) <: In(B)
 struct SubtypeGate{OutT, InT} <: AbstractCriterialGate
@@ -75,18 +116,28 @@ struct SubtypeGate{OutT, InT} <: AbstractCriterialGate
     out_type::Type{OutT}
     in_type::Type{InT}
 end
+SubtypeGate(name::Symbol, ::Type{OutT}, ::Type{InT}) where {OutT, InT} =
+    SubtypeGate{OutT, InT}(String(name), OutT, InT)
 
 # Conjunction Gate: AND over a collection of gates
 struct ConjunctionGate <: AbstractCriterialGate
     name::String
     gates::Vector{AbstractCriterialGate}
 end
+ConjunctionGate(name::Symbol, gates::Vector{<:AbstractCriterialGate}) =
+    ConjunctionGate(String(name), AbstractCriterialGate[g for g in gates])
+ConjunctionGate(name::Union{String, Symbol}, gates::Tuple) =
+    ConjunctionGate(String(name), AbstractCriterialGate[g for g in gates])
 
 # Disjunction Gate: OR over a collection of gates
 struct DisjunctionGate <: AbstractCriterialGate
     name::String
     gates::Vector{AbstractCriterialGate}
 end
+DisjunctionGate(name::Symbol, gates::Vector{<:AbstractCriterialGate}) =
+    DisjunctionGate(String(name), AbstractCriterialGate[g for g in gates])
+DisjunctionGate(name::Union{String, Symbol}, gates::Tuple) =
+    DisjunctionGate(String(name), AbstractCriterialGate[g for g in gates])
 
 # K-of-N Gate: at least k of N gates must pass
 struct KOfNGate <: AbstractCriterialGate
@@ -94,6 +145,13 @@ struct KOfNGate <: AbstractCriterialGate
     gates::Vector{AbstractCriterialGate}
     k::Int
 end
+const KofNGate = KOfNGate
+KOfNGate(name::Symbol, gates::Vector{<:AbstractCriterialGate}, k::Int) =
+    KOfNGate(String(name), AbstractCriterialGate[g for g in gates], k)
+KOfNGate(name::Union{String, Symbol}, k::Int, gates::Union{Tuple, AbstractVector}) =
+    KOfNGate(String(name), AbstractCriterialGate[g for g in gates], k)
+
+gate_passed(g::AbstractCriterialGate, x)::Bool = first(evaluate_gate(g, x))
 
 # Gate evaluation methods returning (passed::Bool, score::Float64, message::String)
 function evaluate_gate(g::ThresholdGate, x)::Tuple{Bool, Float64, String}

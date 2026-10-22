@@ -1,9 +1,18 @@
 # Julia artifacts
 *.jl.cov
 *.jl.*.cov
+*.cov
+*.info
+lcov.info
 *.jl.mem
 /deps/deps.jl
 /build/
+
+# Local test outputs and Kaggle deployment archives
+submission.json
+task_audit_table.parquet.jls
+*.jls
+neuroarc_kaggle_deployment.zip
 
 # Python artifacts
 __pycache__/

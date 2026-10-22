@@ -5,7 +5,7 @@
 [![Julia CI](https://github.com/aurascoper/NeuroARC.jl/actions/workflows/julia_ci.yml/badge.svg)](https://github.com/aurascoper/NeuroARC.jl/actions/workflows/julia_ci.yml)
 [![Manuscript CI](https://github.com/aurascoper/NeuroARC.jl/actions/workflows/manuscript_ci.yml/badge.svg)](https://github.com/aurascoper/NeuroARC.jl/actions/workflows/manuscript_ci.yml)
 
-`NeuroARC.jl` is a high performance Julia package for autonomous visual reasoning on discrete grid abstraction benchmarks, including the Abstraction and Reasoning Corpus (ARC).
+`NeuroARC.jl` (`UUID = a3f5a15a-93e1-4bd8-99e6-0563b78be05c`) is a high performance, zero-dependency Julia package for autonomous visual reasoning on discrete grid abstraction benchmarks, including the Abstraction and Reasoning Corpus (ARC).
 
 ![NeuroARC.jl Criterial Causation Architecture](manuscript/figures/NeuroARC.svg)
 
@@ -46,48 +46,69 @@ External acceleration and inference libraries are provided via Julia 1.9+ packag
 
 ---
 
-## 4. Running Tests
+## 4. Running Tests & Benchmarks
 
-Execute the package test suite using Julia's package manager:
+Execute the master package test suite (325 assertions) using Julia's package manager:
 
 ```bash
 julia --project=. -e 'using Pkg; Pkg.test()'
 ```
 
-The test harness executes 321 assertions across:
-1. Core grid states, palettes, and rule functors
-2. Deterministic candidate verifier (LOO, train-exact, equivariance)
-3. Criterial logic gates and scaffolding controllers
-4. Hyphal grafting preflight checks and runtime type assertions
-5. Vector DOT/SVG figure generation and semantic validation
-6. Automated epistemic text cleanliness audit (0 em-dashes, 0 en-dashes, 0 quarantined terms)
+Execute the dedicated 67-assertion verification suite covering conditional extensions, C-ABI zero-copy transport, Bayesian GLMM calibration, 4-compartment Kondepudi-Frank chiral percolation, and the adaptive CPU-Metal RL scheduler:
+
+```bash
+julia --project=. test/test_turing_ext.jl
+```
+
+Run the multi-backend and adaptive CPU-Metal test-time RL benchmarks:
+
+```bash
+julia --project=. benchmark_adaptive_rl.jl
+julia --project=. benchmark_bandwidth.jl
+```
 
 ---
 
-## 5. Compiling the Manuscript
+## 5. Kaggle Submission, Cryptographic Audit Sealing & Deployment
+
+To execute the test-time RL inference loop, write `submission.json`, seal `task_audit_table.parquet.jls`, and verify the append-only SHA-256 chain hash:
+
+```bash
+make submission
+make verify
+```
+
+To package a clean, self-contained deployment archive (`neuroarc_kaggle_deployment.zip`) for private Kaggle Dataset upload:
+
+```bash
+make bundle
+```
+
+---
+
+## 6. Compiling the Manuscript
 
 The repository houses the complete academic manuscript in `manuscript/`:
 
 ```bash
-cd manuscript
-./build_pdf.sh
+make manuscript
 ```
 
 The build script renders Graphviz DOT vector diagrams, compiles `main.tex` to `main.pdf` via Tectonic or XeLaTeX, and verifies text cleanliness against the compiled layout.
 
 ---
 
-## 6. Repository Governance & Release Lifecycle
+## 7. Repository Governance & Release Lifecycle
 
 `NeuroARC.jl` is currently initialized as a **private repository**. Releasing the code publicly before formal review exposes provisional architecture as finished work.
 
 Public release is scheduled after:
 1. The Donald Hoffman outreach cycle on the six-page draft is complete.
 2. The Revision 3 anti-solipsism audit gates and telemetry logs (`task_audit_table.parquet`) have been formally executed and cryptographically sealed.
-3. The Kaggle submission notebook (`arc2-a0-dsl-union-submit.ipynb`) has been frozen and scored on the leaderboard.
+3. The Kaggle submission notebook (`notebooks/NeuroARC_Submission_v3.ipynb`) has been frozen and scored on the leaderboard.
 
 ---
 
-## 7. License
+## 8. License
 
 MIT License. See `LICENSE` for details.

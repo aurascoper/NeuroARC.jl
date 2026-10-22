@@ -1,4 +1,4 @@
-name: Julia CI
+name: Julia CI & Cryptographic Audit Verification
 
 on:
   push:
@@ -24,6 +24,7 @@ jobs:
         version:
           - "1.10"
           - "1.11"
+          - "1.12"
         os:
           - ubuntu-latest
           - macOS-latest
@@ -39,9 +40,22 @@ jobs:
       - name: Cache Julia dependencies
         uses: julia-actions/cache@v2
 
-      - name: Run package test suite
+      - name: Run Master Package Test Suite (325 Assertions)
         run: |
           julia --project=. -e 'using Pkg; Pkg.test()'
+
+      - name: Run Extensions, C-ABI, GLMM & Chiral Percolation Suite (67 Assertions)
+        run: |
+          julia --project=. test/test_turing_ext.jl
+
+      - name: Generate Submission & Sealed Audit Ledger
+        run: |
+          julia --project=. generate_submission.jl
+
+      - name: Verify Cryptographic Audit Ledger SHA-256 Chain Seal
+        run: |
+          julia --project=. verify_audit_seal.jl task_audit_table.parquet.jls
+          rm -f submission.json task_audit_table.parquet.jls
 
       - name: Audit repository text cleanliness
         run: |
