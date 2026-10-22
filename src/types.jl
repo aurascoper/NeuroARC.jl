@@ -120,16 +120,147 @@ struct InformativeLOOEvidence <: AbstractEvidence
     free_param_count::Int
 end
 
+const CANONICAL_D8_TRANSFORMS = Symbol[
+    :id, :rot90, :rot180, :rot270,
+    :refl_h, :refl_v, :refl_main_diag, :refl_anti_diag
+]
+
+const SYMMETRY_GROUP_TRANSFORMS = Dict{Symbol, Vector{Symbol}}(
+    :D8                => Symbol[:id, :rot90, :rot180, :rot270, :refl_h, :refl_v, :refl_main_diag, :refl_anti_diag],
+    :C4                => Symbol[:id, :rot90, :rot180, :rot270],
+    :D2_ortho          => Symbol[:id, :rot180, :refl_h, :refl_v],
+    :D2_diag           => Symbol[:id, :rot180, :refl_main_diag, :refl_anti_diag],
+    :C2                => Symbol[:id, :rot180],
+    :D1_refl_h         => Symbol[:id, :refl_h],
+    :D1_refl_v         => Symbol[:id, :refl_v],
+    :D1_refl_main_diag => Symbol[:id, :refl_main_diag],
+    :D1_refl_anti_diag => Symbol[:id, :refl_anti_diag],
+    :C1                => Symbol[:id]
+)
+
+const ORDERED_SYMMETRY_SUBGROUPS = Symbol[
+    :D8, :C4, :D2_ortho, :D2_diag, :C2,
+    :D1_refl_h, :D1_refl_v, :D1_refl_main_diag, :D1_refl_anti_diag, :C1
+]
+
+"""
+    group_transforms(group::Symbol)::Vector{Symbol}
+
+Returns the canonical list of geometric transformations for the requested symmetry group.
+"""
+function group_transforms(group::Symbol)::Vector{Symbol}
+    haskey(SYMMETRY_GROUP_TRANSFORMS, group) ||
+        throw(ArgumentError("Unsupported symmetry group symbol: $group"))
+    return copy(SYMMETRY_GROUP_TRANSFORMS[group])
+end
+
+"""
+    compute_supported_subgroups(passed_transforms::AbstractVector{Symbol})::Vector{Symbol}
+
+Computes all dihedral/rotational/reflection subgroups of `D_8` whose elements are all contained
+in `passed_transforms`.
+"""
+function compute_supported_subgroups(passed_transforms::AbstractVector{Symbol})::Vector{Symbol}
+    passed_set = Set{Symbol}(passed_transforms)
+    subgroups = Symbol[]
+    for sg in ORDERED_SYMMETRY_SUBGROUPS
+        req = SYMMETRY_GROUP_TRANSFORMS[sg]
+        if all(t -> t in passed_set, req)
+            push!(subgroups, sg)
+        end
+    end
+    return subgroups
+end
+
 """
     EquivarianceEvidence <: AbstractEvidence
 
-Equivariance verification evidence under D8 dihedral and color permutations.
-Status is `:passed`, `:failed`, or `:untestable`.
+Equivariance verification evidence recording the requested symmetry claim (`requested_group`),
+exact `tested_transforms`, `passed_transforms`, `failed_transforms`, `untestable_transforms`,
+and `supported_subgroups`, along with `d8_equivariant`, `color_perm_equivariant`, and
+3-valued `status` (`:passed`, `:failed`, or `:untestable` scoped to `requested_group`).
 """
 struct EquivarianceEvidence <: AbstractEvidence
     d8_equivariant::Bool
     color_perm_equivariant::Bool
     status::Symbol
+    requested_group::Symbol
+    tested_transforms::Vector{Symbol}
+    passed_transforms::Vector{Symbol}
+    failed_transforms::Vector{Symbol}
+    untestable_transforms::Vector{Symbol}
+    supported_subgroups::Vector{Symbol}
+end
+
+function EquivarianceEvidence(
+    d8_equivariant::Bool,
+    color_perm_equivariant::Bool,
+    status::Symbol,
+    requested_group::Symbol,
+    tested_transforms::Vector{Symbol},
+    passed_transforms::Vector{Symbol},
+    failed_transforms::Vector{Symbol},
+    untestable_transforms::Vector{Symbol}
+)
+    return EquivarianceEvidence(
+        d8_equivariant,
+        color_perm_equivariant,
+        status,
+        requested_group,
+        tested_transforms,
+        passed_transforms,
+        failed_transforms,
+        untestable_transforms,
+        compute_supported_subgroups(passed_transforms)
+    )
+end
+
+function EquivarianceEvidence(
+    d8_equivariant::Bool,
+    color_perm_equivariant::Bool,
+    status::Symbol;
+    requested_group::Symbol = :D8
+)
+    tested = group_transforms(requested_group)
+    if status === :untestable
+        return EquivarianceEvidence(
+            d8_equivariant,
+            color_perm_equivariant,
+            status,
+            requested_group,
+            tested,
+            Symbol[],
+            Symbol[],
+            copy(tested),
+            Symbol[]
+        )
+    elseif d8_equivariant
+        return EquivarianceEvidence(
+            d8_equivariant,
+            color_perm_equivariant,
+            status,
+            requested_group,
+            tested,
+            copy(tested),
+            Symbol[],
+            Symbol[],
+            compute_supported_subgroups(CANONICAL_D8_TRANSFORMS)
+        )
+    else
+        passed = :id in tested ? Symbol[:id] : Symbol[]
+        failed = [t for t in tested if t !== :id]
+        return EquivarianceEvidence(
+            d8_equivariant,
+            color_perm_equivariant,
+            status,
+            requested_group,
+            tested,
+            passed,
+            failed,
+            Symbol[],
+            compute_supported_subgroups(passed)
+        )
+    end
 end
 
 """
