@@ -59,6 +59,17 @@ struct Demonstration
     output::GridState
 end
 
+Demonstration(inp::AbstractMatrix{<:Integer}, out::AbstractMatrix{<:Integer}) =
+    Demonstration(GridState(inp), GridState(out))
+
+Demonstration(pair::Tuple{<:Union{GridState, AbstractMatrix{<:Integer}}, <:Union{GridState, AbstractMatrix{<:Integer}}}) =
+    Demonstration(
+        pair[1] isa GridState ? pair[1] : GridState(pair[1]),
+        pair[2] isa GridState ? pair[2] : GridState(pair[2])
+    )
+
+const IOPair = Demonstration
+
 """
     ARCTask
 

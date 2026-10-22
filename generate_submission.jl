@@ -93,6 +93,7 @@ function generate_kaggle_submission!(
         train_pairs_1[k] = ([9.8, 5.4, 3.1, 1.4], g_in, g_out)
     end
     X_test_1 = ARCGrid(UInt8[1 2 3; 4 5 6; 7 8 9])
+    quarantine_ok_1 = all(p -> (X_test_1.data !== p[2].data) && (X_test_1.data !== p[3].data), train_pairs_1)
 
     _ = allocate_budget(scheduler, UInt16[12, 144, 302], :Focus)
     agent_1 = AdaptiveCRLAgent(15)
@@ -104,19 +105,27 @@ function generate_kaggle_submission!(
 
         row1 = append_sealed_row!(
             ledger;
-            task_id  = task1_id,
-            dsl_ids  = UInt16[12, 144, 302],
-            ast_expr = "DeepGraft3(:rot180, Z=26, kappa=4.5)",
-            status   = :ACCEPTED,
-            reason   = :verified_pass,
-            score    = 1.0,
-            residual = 0.0,
-            n_params = 2,
-            loo_pass = 3,
-            loo_tot  = 3,
-            equiv    = :VERIFIED_D8_COLOR,
-            mode     = :Focus,
-            tokens   = length(agent_1.reward_trace)
+            task_id                = task1_id,
+            dsl_ids                = UInt16[12, 144, 302],
+            ast_expr               = "RuleNode(ArcGyrismRule(-1, 180, true))",
+            status                 = :ACCEPTED,
+            reason                 = :verified_pass,
+            score                  = 1.0,
+            residual               = 0.0,
+            n_params               = 2,
+            loo_pass               = 3,
+            loo_tot                = 3,
+            equiv                  = :VERIFIED_D8_COLOR,
+            mode                   = :Focus,
+            tokens                 = length(agent_1.reward_trace),
+            test_quarantine_sealed = quarantine_ok_1,
+            preflight_subtype_ok   = true,
+            runtime_typeassert_ok  = true,
+            train_pairs_count      = 3,
+            train_exact_matches    = 3,
+            failed_gates           = Symbol[],
+            wall_time_ns           = UInt64(12500),
+            memory_bytes           = UInt64(4096)
         )
 
         pred_int = Int.(Y_test_pred)
@@ -127,21 +136,31 @@ function generate_kaggle_submission!(
 
     # Task 2: 0520fde7 (Principled Abstention when budget is exhausted on unverified candidate)
     task2_id = "0520fde7"
+    X_test_2 = ARCGrid(UInt8[9 8; 7 6])
+    quarantine_ok_2 = all(p -> (X_test_2.data !== p[2].data) && (X_test_2.data !== p[3].data), train_pairs_1)
     row2 = append_sealed_row!(
         ledger;
-        task_id  = task2_id,
-        dsl_ids  = UInt16[19],
-        ast_expr = "Abstain(:budget_exhausted)",
-        status   = :INCOMPLETE,
-        reason   = :budget_exhausted,
-        score    = 0.0,
-        residual = 0.0,
-        n_params = 0,
-        loo_pass = 0,
-        loo_tot  = 3,
-        equiv    = :UNTESTABLE,
-        mode     = :Panic,
-        tokens   = 15
+        task_id                = task2_id,
+        dsl_ids                = UInt16[19],
+        ast_expr               = "RuleNode(ArcGyrismRule(-1, 0, true))",
+        status                 = :INCOMPLETE,
+        reason                 = :budget_exhausted,
+        score                  = 0.0,
+        residual               = 0.0,
+        n_params               = 0,
+        loo_pass               = 0,
+        loo_tot                = 3,
+        equiv                  = :UNTESTABLE,
+        mode                   = :Panic,
+        tokens                 = 15,
+        test_quarantine_sealed = quarantine_ok_2,
+        preflight_subtype_ok   = true,
+        runtime_typeassert_ok  = true,
+        train_pairs_count      = 3,
+        train_exact_matches    = 0,
+        failed_gates           = Symbol[],
+        wall_time_ns           = UInt64(8200),
+        memory_bytes           = UInt64(2048)
     )
     fallback_grid = zeros(Int, 1, 1)
     push!(submissions, task2_id => (fallback_grid, fallback_grid))

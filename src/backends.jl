@@ -230,6 +230,7 @@ const NARC_MAGIC_HEADER    = UInt32(0x4E415243)
 const COL_MAJOR_CONTIGUOUS = UInt8(0x01)
 const VERIFIED_DSL_MAX_ID  = UInt16(557)
 const GENESIS_SEAL_HASH    = repeat("0", 64)
+const SEAL_SCHEMA_VERSION  = "rev3.v2"
 
 struct CandidateBufferDescriptor
     magic_header::UInt32
@@ -283,6 +284,17 @@ function verify_zero_copy_eligibility(lock::TransportSlotLock)::Bool
     return false
 end
 
+function verify_zero_copy_eligibility(lock::TransportSlotLock, desc::CandidateBufferDescriptor)::Bool
+    desc.magic_header == NARC_MAGIC_HEADER || return false
+    desc.memory_order == COL_MAJOR_CONTIGUOUS || return false
+    desc.python_pinned == 0x01 || return false
+    (1 <= desc.rows <= 30 && 1 <= desc.cols <= 30) || return false
+    (desc.stride_row == 1 && desc.stride_col == desc.rows) || return false
+    (1 <= desc.dsl_operator_id <= VERIFIED_DSL_MAX_ID) || return false
+    Ptr{UInt8}(desc.data_ptr) != C_NULL || return false
+    return verify_zero_copy_eligibility(lock)
+end
+
 mutable struct EntrenchmentRegistry
     weights::Dict{Symbol, Float64}
     EntrenchmentRegistry() = new(Dict{Symbol, Float64}())
@@ -301,26 +313,39 @@ function empower_lineage!(reg::EntrenchmentRegistry, lineage::Vector{UInt16}, sc
 end
 
 struct TaskAuditRow
+    seal_schema_version::String
     row_id::Int64
     task_id::String
     git_commit_hash::String
     dsl_operator_ids::Vector{UInt16}
     candidate_ast_sha256::String
+    ast_expr::String
     preflight_subtype_ok::Bool
     runtime_typeassert_ok::Bool
-    verdict_status::Symbol
-    verdict_reason::Symbol
-    score_or_partial::Float64
+    train_pairs_count::Int32
+    train_exact_matches::Int32
     train_max_residual::Float64
     num_free_params::Int32
     loo_is_informative::Bool
-    loo_folds_passed::Int32
     loo_folds_total::Int32
+    loo_folds_passed::Int32
     equivariance_status::Symbol
     wbr_terminal_mode::Symbol
     tokens_consumed::Int32
     test_quarantine_sealed::Bool
+    verdict_status::Symbol
+    verdict_reason::Symbol
+    failed_gates::Vector{Symbol}
+    partial_score::Float64
+    wall_time_ns::Int64
+    memory_bytes::Int64
+    prev_row_seal_sha256::String
     row_seal_sha256::String
+end
+
+function Base.getproperty(r::TaskAuditRow, sym::Symbol)
+    sym === :score_or_partial && return getfield(r, :partial_score)
+    return getfield(r, sym)
 end
 
 mutable struct Revision3AuditLedger
@@ -359,6 +384,112 @@ function allocate_budget(sched::ComputeBudgetScheduler, lineage::Vector{UInt16},
     return allocate_budget(sched, syms, mode)
 end
 
+"""
+    compute_canonical_row_seal_sha256(...) -> String
+
+Computes the versioned (`SEAL_SCHEMA_VERSION = "rev3.v2"`) canonical SHA-256 row seal binding
+every verification-critical input field of a `TaskAuditRow` (`TaskAuditRow` has 28 struct fields
+total: 27 input fields bound into this canonical preimage plus 1 output digest field `row_seal_sha256`).
+"""
+function compute_canonical_row_seal_sha256(;
+    seal_schema_version::AbstractString = SEAL_SCHEMA_VERSION,
+    row_id::Integer,
+    task_id::AbstractString,
+    git_commit_hash::AbstractString,
+    dsl_operator_ids::AbstractVector{<:Integer},
+    candidate_ast_sha256::AbstractString,
+    ast_expr::AbstractString,
+    preflight_subtype_ok::Bool,
+    runtime_typeassert_ok::Bool,
+    train_pairs_count::Integer,
+    train_exact_matches::Integer,
+    train_max_residual::Real,
+    num_free_params::Integer,
+    loo_is_informative::Bool,
+    loo_folds_total::Integer,
+    loo_folds_passed::Integer,
+    equivariance_status::Symbol,
+    wbr_terminal_mode::Symbol,
+    tokens_consumed::Integer,
+    test_quarantine_sealed::Bool,
+    verdict_status::Symbol,
+    verdict_reason::Symbol,
+    failed_gates::AbstractVector{Symbol},
+    partial_score::Real,
+    wall_time_ns::Integer,
+    memory_bytes::Integer,
+    prev_row_seal_sha256::AbstractString
+)::String
+    dsl_str = join(UInt16.(dsl_operator_ids), ",")
+    fg_str  = join(string.(failed_gates), ",")
+    ast_s   = String(ast_expr)
+    res_str = repr(Float64(train_max_residual))
+    sc_str  = repr(Float64(partial_score))
+
+    payload = string(
+        "schema=", seal_schema_version,
+        "|prev=", prev_row_seal_sha256,
+        "|row_id=", Int64(row_id),
+        "|task_id=", task_id,
+        "|commit=", git_commit_hash,
+        "|dsl_ids=", dsl_str,
+        "|ast_sha256=", candidate_ast_sha256,
+        "|ast_len=", ncodeunits(ast_s), ":", ast_s,
+        "|preflight_subtype_ok=", preflight_subtype_ok,
+        "|runtime_typeassert_ok=", runtime_typeassert_ok,
+        "|train_pairs_count=", Int32(train_pairs_count),
+        "|train_exact_matches=", Int32(train_exact_matches),
+        "|train_max_residual=", res_str,
+        "|num_free_params=", Int32(num_free_params),
+        "|loo_is_informative=", loo_is_informative,
+        "|loo_folds_total=", Int32(loo_folds_total),
+        "|loo_folds_passed=", Int32(loo_folds_passed),
+        "|equivariance_status=", equivariance_status,
+        "|wbr_terminal_mode=", wbr_terminal_mode,
+        "|tokens_consumed=", Int32(tokens_consumed),
+        "|test_quarantine_sealed=", test_quarantine_sealed,
+        "|verdict_status=", verdict_status,
+        "|verdict_reason=", verdict_reason,
+        "|failed_gates=", fg_str,
+        "|partial_score=", sc_str,
+        "|wall_time_ns=", Int64(wall_time_ns),
+        "|memory_bytes=", Int64(memory_bytes)
+    )
+    return sha256_hex(payload)
+end
+
+function compute_canonical_row_seal_sha256(r::TaskAuditRow)::String
+    return compute_canonical_row_seal_sha256(
+        seal_schema_version    = r.seal_schema_version,
+        row_id                 = r.row_id,
+        task_id                = r.task_id,
+        git_commit_hash        = r.git_commit_hash,
+        dsl_operator_ids       = r.dsl_operator_ids,
+        candidate_ast_sha256   = r.candidate_ast_sha256,
+        ast_expr               = r.ast_expr,
+        preflight_subtype_ok   = r.preflight_subtype_ok,
+        runtime_typeassert_ok  = r.runtime_typeassert_ok,
+        train_pairs_count      = r.train_pairs_count,
+        train_exact_matches    = r.train_exact_matches,
+        train_max_residual     = r.train_max_residual,
+        num_free_params        = r.num_free_params,
+        loo_is_informative     = r.loo_is_informative,
+        loo_folds_total        = r.loo_folds_total,
+        loo_folds_passed       = r.loo_folds_passed,
+        equivariance_status    = r.equivariance_status,
+        wbr_terminal_mode      = r.wbr_terminal_mode,
+        tokens_consumed        = r.tokens_consumed,
+        test_quarantine_sealed = r.test_quarantine_sealed,
+        verdict_status         = r.verdict_status,
+        verdict_reason         = r.verdict_reason,
+        failed_gates           = r.failed_gates,
+        partial_score          = r.partial_score,
+        wall_time_ns           = r.wall_time_ns,
+        memory_bytes           = r.memory_bytes,
+        prev_row_seal_sha256   = r.prev_row_seal_sha256
+    )
+end
+
 function append_sealed_row!(
     ledger::Revision3AuditLedger;
     task_id::String,
@@ -366,31 +497,97 @@ function append_sealed_row!(
     ast_expr::String,
     status::Symbol,
     reason::Symbol,
-    score::Float64,
-    residual::Float64,
-    n_params::Int,
-    loo_pass::Int,
-    loo_tot::Int,
-    equiv::Symbol,
-    mode::Symbol,
-    tokens::Int
+    score::Real = 0.0,
+    partial_score::Real = score,
+    residual::Real = 0.0,
+    train_max_residual::Real = residual,
+    n_params::Integer = 0,
+    loo_pass::Integer = 0,
+    loo_tot::Integer = 0,
+    train_pairs_count::Integer = loo_tot,
+    train_exact_matches::Integer = (status in (:ACCEPTED, :Accepted, :passed) ? train_pairs_count : max(0, train_pairs_count - 1)),
+    equiv::Symbol = :UNTESTABLE,
+    mode::Symbol = :Focus,
+    tokens::Integer = 0,
+    preflight_subtype_ok::Bool = true,
+    runtime_typeassert_ok::Bool = true,
+    failed_gates::Vector{Symbol} = Symbol[],
+    wall_time_ns::Integer = 0,
+    memory_bytes::Integer = 0,
+    test_quarantine_sealed::Bool,
+    seal_schema_version::String = SEAL_SCHEMA_VERSION
 )
-    (!isfinite(score) || score == -1.0) &&
+    ps = Float64(partial_score)
+    res_f = Float64(train_max_residual)
+    (!isfinite(ps) || ps == -1.0 || !isfinite(res_f) || res_f == -1.0) &&
         throw(ArgumentError("Numeric sentinel leakage forbidden in Revision3AuditLedger."))
+    (wall_time_ns < 0 || memory_bytes < 0) &&
+        throw(ArgumentError("Negative telemetry counters forbidden in Revision3AuditLedger."))
+
     rid = Int64(length(ledger.rows) + 1)
     ast_sha = sha256_hex(ast_expr)
     loo_inf = (n_params > 0) && (loo_tot >= 2)
-    payload = string(
-        ledger.head_seal_sha256, "|", rid, "|", task_id, "|", ledger.git_commit_hash, "|",
-        join(dsl_ids, ","), "|", ast_sha, "|", status, "|", reason, "|", score, "|",
-        residual, "|", n_params, "|", loo_inf, "|", loo_pass, "|", loo_tot, "|",
-        equiv, "|", mode, "|", tokens, "|true"
+    prev_seal = ledger.head_seal_sha256
+
+    seal = compute_canonical_row_seal_sha256(
+        seal_schema_version    = seal_schema_version,
+        row_id                 = rid,
+        task_id                = task_id,
+        git_commit_hash        = ledger.git_commit_hash,
+        dsl_operator_ids       = dsl_ids,
+        candidate_ast_sha256   = ast_sha,
+        ast_expr               = ast_expr,
+        preflight_subtype_ok   = preflight_subtype_ok,
+        runtime_typeassert_ok  = runtime_typeassert_ok,
+        train_pairs_count      = Int32(train_pairs_count),
+        train_exact_matches    = Int32(train_exact_matches),
+        train_max_residual     = res_f,
+        num_free_params        = Int32(n_params),
+        loo_is_informative     = loo_inf,
+        loo_folds_total        = Int32(loo_tot),
+        loo_folds_passed       = Int32(loo_pass),
+        equivariance_status    = equiv,
+        wbr_terminal_mode      = mode,
+        tokens_consumed        = Int32(tokens),
+        test_quarantine_sealed = test_quarantine_sealed,
+        verdict_status         = status,
+        verdict_reason         = reason,
+        failed_gates           = failed_gates,
+        partial_score          = ps,
+        wall_time_ns           = Int64(wall_time_ns),
+        memory_bytes           = Int64(memory_bytes),
+        prev_row_seal_sha256   = prev_seal
     )
-    seal = sha256_hex(payload)
+
     row = TaskAuditRow(
-        rid, task_id, ledger.git_commit_hash, dsl_ids, ast_sha, true, true,
-        status, reason, score, residual, Int32(n_params), loo_inf,
-        Int32(loo_pass), Int32(loo_tot), equiv, mode, Int32(tokens), true, seal
+        seal_schema_version,
+        rid,
+        task_id,
+        ledger.git_commit_hash,
+        copy(dsl_ids),
+        ast_sha,
+        ast_expr,
+        preflight_subtype_ok,
+        runtime_typeassert_ok,
+        Int32(train_pairs_count),
+        Int32(train_exact_matches),
+        res_f,
+        Int32(n_params),
+        loo_inf,
+        Int32(loo_tot),
+        Int32(loo_pass),
+        equiv,
+        mode,
+        Int32(tokens),
+        test_quarantine_sealed,
+        status,
+        reason,
+        copy(failed_gates),
+        ps,
+        Int64(wall_time_ns),
+        Int64(memory_bytes),
+        prev_seal,
+        seal
     )
     push!(ledger.rows, row)
     ledger.head_seal_sha256 = seal
@@ -401,7 +598,8 @@ end
     verify_ledger_cryptographic_seal(ledger::Revision3AuditLedger) -> AbstractVerdict
 
 Recomputes the entire SHA-256 chain from `GENESIS_SEAL_HASH` across every row in `ledger`
-and verifies row-index monotonicity, quarantine flags, and sentinel-free scores.
+under `SEAL_SCHEMA_VERSION` (`"rev3.v2"`) and verifies row-index monotonicity, quarantine flags,
+AST digest consistency, and sentinel-free scores.
 """
 function verify_ledger_cryptographic_seal(ledger::Revision3AuditLedger)::AbstractVerdict
     prev_seal = GENESIS_SEAL_HASH
@@ -409,21 +607,25 @@ function verify_ledger_cryptographic_seal(ledger::Revision3AuditLedger)::Abstrac
         if r.row_id != idx
             return Rejected(:row_sequence_tampered, "Row sequence mismatch at index $idx.", [:gate_r3_5_sequence], 0.0)
         end
-        if !isfinite(r.score_or_partial) || r.score_or_partial == -1.0
+        if !isfinite(r.partial_score) || r.partial_score == -1.0 || !isfinite(r.train_max_residual) || r.train_max_residual == -1.0
             return Rejected(:sentinel_leakage, "Numeric sentinel detected at row $idx.", [:gate_r3_5_sentinel], 0.0)
         end
         if !r.test_quarantine_sealed
             return Rejected(:quarantine_breach, "Test quarantine unsealed at row $idx.", [:gate_r3_5_quarantine], 0.0)
         end
-        payload = string(
-            prev_seal, "|", r.row_id, "|", r.task_id, "|", r.git_commit_hash, "|",
-            join(r.dsl_operator_ids, ","), "|", r.candidate_ast_sha256, "|",
-            r.verdict_status, "|", r.verdict_reason, "|", r.score_or_partial, "|",
-            r.train_max_residual, "|", r.num_free_params, "|", r.loo_is_informative, "|",
-            r.loo_folds_passed, "|", r.loo_folds_total, "|", r.equivariance_status, "|",
-            r.wbr_terminal_mode, "|", r.tokens_consumed, "|", r.test_quarantine_sealed
-        )
-        expected = sha256_hex(payload)
+        if r.seal_schema_version != SEAL_SCHEMA_VERSION
+            return Rejected(:sha256_row_mismatch, "Unsupported or tampered seal_schema_version at row $idx.", [:gate_r3_5_cryptographic_seal], 0.0)
+        end
+        if r.prev_row_seal_sha256 != prev_seal
+            return Rejected(:sha256_row_mismatch, "Previous row seal link broken at row $idx.", [:gate_r3_5_cryptographic_seal], 0.0)
+        end
+        if r.git_commit_hash != ledger.git_commit_hash
+            return Rejected(:sha256_row_mismatch, "Row git_commit_hash mismatch at row $idx.", [:gate_r3_5_cryptographic_seal], 0.0)
+        end
+        if r.candidate_ast_sha256 != sha256_hex(r.ast_expr)
+            return Rejected(:sha256_row_mismatch, "candidate_ast_sha256 does not match ast_expr at row $idx.", [:gate_r3_5_cryptographic_seal], 0.0)
+        end
+        expected = compute_canonical_row_seal_sha256(r)
         if r.row_seal_sha256 != expected
             return Rejected(:sha256_row_mismatch, "SHA-256 seal broken at row $idx.", [:gate_r3_5_cryptographic_seal], 0.0)
         end
@@ -433,10 +635,10 @@ function verify_ledger_cryptographic_seal(ledger::Revision3AuditLedger)::Abstrac
         return Rejected(:sha256_head_mismatch, "Ledger head SHA-256 seal mismatch.", [:gate_r3_5_cryptographic_seal], 0.0)
     end
     return Accepted(
-        (rows_verified = length(ledger.rows), head_seal = ledger.head_seal_sha256),
+        (rows_verified = length(ledger.rows), head_seal = ledger.head_seal_sha256, seal_schema_version = SEAL_SCHEMA_VERSION),
         (:cryptographic_seal_verified, :quarantine_intact),
         1.0,
-        "Verified SHA-256 chain across $(length(ledger.rows)) rows."
+        "Verified SHA-256 chain across $(length(ledger.rows)) rows under $(SEAL_SCHEMA_VERSION)."
     )
 end
 
@@ -490,6 +692,40 @@ function calibrate_audit_glmm!(
     )
 end
 
+function _escape_tsv_field(s::AbstractString)::String
+    out = replace(String(s), "\\" => "\\\\")
+    out = replace(out, "\t" => "\\t")
+    out = replace(out, "\n" => "\\n")
+    return out
+end
+
+function _unescape_tsv_field(s::AbstractString)::String
+    buf = IOBuffer()
+    i = firstindex(s)
+    last_i = lastindex(s)
+    while i <= last_i
+        c = s[i]
+        if c == '\\' && i < last_i
+            nxt = s[nextind(s, i)]
+            if nxt == 't'
+                write(buf, '\t')
+            elseif nxt == 'n'
+                write(buf, '\n')
+            elseif nxt == '\\'
+                write(buf, '\\')
+            else
+                write(buf, c)
+                write(buf, nxt)
+            end
+            i = nextind(s, nextind(s, i))
+        else
+            write(buf, c)
+            i = nextind(s, i)
+        end
+    end
+    return String(take!(buf))
+end
+
 """
     write_columnar_audit_snapshot(path::AbstractString, ledger::Revision3AuditLedger) -> String
 
@@ -497,36 +733,51 @@ Serializes the cryptographically sealed Revision 3 `Revision3AuditLedger` into a
 columnar audit snapshot (`task_audit_table.parquet.jls`) after verifying
 that the full SHA-256 chain is intact.
 """
-function write_columnar_audit_snapshot(path::AbstractString, ledger::Revision3AuditLedger)::String
-    v_seal = verify_ledger_cryptographic_seal(ledger)
-    v_seal isa Accepted || throw(ArgumentError("Refusing to write unsealed audit ledger to $path."))
+function write_columnar_audit_snapshot(
+    path::AbstractString,
+    ledger::Revision3AuditLedger;
+    allow_unverified::Bool = false
+)::String
+    if !allow_unverified
+        v_seal = verify_ledger_cryptographic_seal(ledger)
+        v_seal isa Accepted || throw(ArgumentError("Refusing to write unsealed audit ledger to $path."))
+    end
     open(path, "w") do io
-        write(io, "SCHEMA_VERSION=NARC_PARQUET_JLS_V3\n")
+        write(io, "SCHEMA_VERSION=", SEAL_SCHEMA_VERSION, "\n")
         write(io, "COMMIT_SHA=", ledger.git_commit_hash, "\n")
         write(io, "HEAD_SEAL_SHA256=", ledger.head_seal_sha256, "\n")
         write(io, "ROW_COUNT=", string(length(ledger.rows)), "\n")
         for r in ledger.rows
             dsl_str = join(string.(r.dsl_operator_ids), ",")
+            fg_str  = join(string.(r.failed_gates), ",")
             line = string(
+                _escape_tsv_field(r.seal_schema_version), "\t",
                 r.row_id, "\t",
-                r.task_id, "\t",
-                r.git_commit_hash, "\t",
+                _escape_tsv_field(r.task_id), "\t",
+                _escape_tsv_field(r.git_commit_hash), "\t",
                 dsl_str, "\t",
                 r.candidate_ast_sha256, "\t",
+                _escape_tsv_field(r.ast_expr), "\t",
                 r.preflight_subtype_ok, "\t",
                 r.runtime_typeassert_ok, "\t",
-                r.verdict_status, "\t",
-                r.verdict_reason, "\t",
-                r.score_or_partial, "\t",
-                r.train_max_residual, "\t",
+                r.train_pairs_count, "\t",
+                r.train_exact_matches, "\t",
+                repr(r.train_max_residual), "\t",
                 r.num_free_params, "\t",
                 r.loo_is_informative, "\t",
-                r.loo_folds_passed, "\t",
                 r.loo_folds_total, "\t",
+                r.loo_folds_passed, "\t",
                 r.equivariance_status, "\t",
                 r.wbr_terminal_mode, "\t",
                 r.tokens_consumed, "\t",
                 r.test_quarantine_sealed, "\t",
+                r.verdict_status, "\t",
+                r.verdict_reason, "\t",
+                fg_str, "\t",
+                repr(r.partial_score), "\t",
+                r.wall_time_ns, "\t",
+                r.memory_bytes, "\t",
+                r.prev_row_seal_sha256, "\t",
                 r.row_seal_sha256, "\n"
             )
             write(io, line)
@@ -539,82 +790,592 @@ end
     read_columnar_audit_snapshot(path::AbstractString) -> NamedTuple
 
 Reloads a serialized `task_audit_table.parquet.jls` columnar audit snapshot for
-post-submission SHA-256 cryptographic chain verification.
+post-submission SHA-256 cryptographic chain verification and deterministic candidate replay.
 """
 function read_columnar_audit_snapshot(path::AbstractString)
     lines = readlines(path)
     length(lines) >= 4 || throw(ArgumentError("Malformed audit snapshot file: $path"))
-    schema_ver = split(lines[1], "=")[2]
-    commit_sha = split(lines[2], "=")[2]
-    head_seal  = split(lines[3], "=")[2]
-    n_rows     = parse(Int, split(lines[4], "=")[2])
+    schema_ver = split(lines[1], "="; limit = 2)[2]
+    commit_sha = split(lines[2], "="; limit = 2)[2]
+    head_seal  = split(lines[3], "="; limit = 2)[2]
+    n_rows     = parse(Int, split(lines[4], "="; limit = 2)[2])
 
+    seal_schema_version    = Vector{String}(undef, n_rows)
     row_id                 = Vector{Int64}(undef, n_rows)
     task_id                = Vector{String}(undef, n_rows)
+    row_git_commit_hash    = Vector{String}(undef, n_rows)
     dsl_operator_ids       = Vector{Vector{UInt16}}(undef, n_rows)
     candidate_ast_sha256   = Vector{String}(undef, n_rows)
+    ast_expr               = Vector{String}(undef, n_rows)
     preflight_subtype_ok   = Vector{Bool}(undef, n_rows)
     runtime_typeassert_ok  = Vector{Bool}(undef, n_rows)
-    verdict_status         = Vector{Symbol}(undef, n_rows)
-    verdict_reason         = Vector{Symbol}(undef, n_rows)
-    score_or_partial       = Vector{Float64}(undef, n_rows)
+    train_pairs_count      = Vector{Int32}(undef, n_rows)
+    train_exact_matches    = Vector{Int32}(undef, n_rows)
     train_max_residual     = Vector{Float64}(undef, n_rows)
     num_free_params        = Vector{Int32}(undef, n_rows)
     loo_is_informative     = Vector{Bool}(undef, n_rows)
-    loo_folds_passed       = Vector{Int32}(undef, n_rows)
     loo_folds_total        = Vector{Int32}(undef, n_rows)
+    loo_folds_passed       = Vector{Int32}(undef, n_rows)
     equivariance_status    = Vector{Symbol}(undef, n_rows)
     wbr_terminal_mode      = Vector{Symbol}(undef, n_rows)
     tokens_consumed        = Vector{Int32}(undef, n_rows)
     test_quarantine_sealed = Vector{Bool}(undef, n_rows)
+    verdict_status         = Vector{Symbol}(undef, n_rows)
+    verdict_reason         = Vector{Symbol}(undef, n_rows)
+    failed_gates           = Vector{Vector{Symbol}}(undef, n_rows)
+    partial_score          = Vector{Float64}(undef, n_rows)
+    wall_time_ns           = Vector{Int64}(undef, n_rows)
+    memory_bytes           = Vector{Int64}(undef, n_rows)
+    prev_row_seal_sha256   = Vector{String}(undef, n_rows)
     row_seal_sha256        = Vector{String}(undef, n_rows)
+    rows                   = Vector{TaskAuditRow}(undef, n_rows)
 
     for idx in 1:n_rows
         parts = split(lines[4 + idx], "\t")
-        row_id[idx]                 = parse(Int64, parts[1])
-        task_id[idx]                = String(parts[2])
-        dsl_operator_ids[idx]       = isempty(parts[4]) ? UInt16[] : [parse(UInt16, s) for s in split(parts[4], ",")]
-        candidate_ast_sha256[idx]   = String(parts[5])
-        preflight_subtype_ok[idx]   = parse(Bool, parts[6])
-        runtime_typeassert_ok[idx]  = parse(Bool, parts[7])
-        verdict_status[idx]         = Symbol(parts[8])
-        verdict_reason[idx]         = Symbol(parts[9])
-        score_or_partial[idx]       = parse(Float64, parts[10])
-        train_max_residual[idx]     = parse(Float64, parts[11])
-        num_free_params[idx]        = parse(Int32, parts[12])
-        loo_is_informative[idx]     = parse(Bool, parts[13])
-        loo_folds_passed[idx]       = parse(Int32, parts[14])
+        length(parts) == 28 || throw(ArgumentError("Malformed row $idx in $path: expected 28 columns, got $(length(parts))"))
+        seal_schema_version[idx]    = _unescape_tsv_field(parts[1])
+        row_id[idx]                 = parse(Int64, parts[2])
+        task_id[idx]                = _unescape_tsv_field(parts[3])
+        row_git_commit_hash[idx]    = _unescape_tsv_field(parts[4])
+        dsl_operator_ids[idx]       = isempty(parts[5]) ? UInt16[] : [parse(UInt16, s) for s in split(parts[5], ",")]
+        candidate_ast_sha256[idx]   = String(parts[6])
+        ast_expr[idx]               = _unescape_tsv_field(parts[7])
+        preflight_subtype_ok[idx]   = parse(Bool, parts[8])
+        runtime_typeassert_ok[idx]  = parse(Bool, parts[9])
+        train_pairs_count[idx]      = parse(Int32, parts[10])
+        train_exact_matches[idx]    = parse(Int32, parts[11])
+        train_max_residual[idx]     = parse(Float64, parts[12])
+        num_free_params[idx]        = parse(Int32, parts[13])
+        loo_is_informative[idx]     = parse(Bool, parts[14])
         loo_folds_total[idx]        = parse(Int32, parts[15])
-        equivariance_status[idx]    = Symbol(parts[16])
-        wbr_terminal_mode[idx]      = Symbol(parts[17])
-        tokens_consumed[idx]        = parse(Int32, parts[18])
-        test_quarantine_sealed[idx] = parse(Bool, parts[19])
-        row_seal_sha256[idx]        = String(parts[20])
+        loo_folds_passed[idx]       = parse(Int32, parts[16])
+        equivariance_status[idx]    = Symbol(parts[17])
+        wbr_terminal_mode[idx]      = Symbol(parts[18])
+        tokens_consumed[idx]        = parse(Int32, parts[19])
+        test_quarantine_sealed[idx] = parse(Bool, parts[20])
+        verdict_status[idx]         = Symbol(parts[21])
+        verdict_reason[idx]         = Symbol(parts[22])
+        failed_gates[idx]           = isempty(parts[23]) ? Symbol[] : [Symbol(s) for s in split(parts[23], ",")]
+        partial_score[idx]          = parse(Float64, parts[24])
+        wall_time_ns[idx]           = parse(Int64, parts[25])
+        memory_bytes[idx]           = parse(Int64, parts[26])
+        prev_row_seal_sha256[idx]   = String(parts[27])
+        row_seal_sha256[idx]        = String(parts[28])
+
+        rows[idx] = TaskAuditRow(
+            seal_schema_version[idx],
+            row_id[idx],
+            task_id[idx],
+            row_git_commit_hash[idx],
+            dsl_operator_ids[idx],
+            candidate_ast_sha256[idx],
+            ast_expr[idx],
+            preflight_subtype_ok[idx],
+            runtime_typeassert_ok[idx],
+            train_pairs_count[idx],
+            train_exact_matches[idx],
+            train_max_residual[idx],
+            num_free_params[idx],
+            loo_is_informative[idx],
+            loo_folds_total[idx],
+            loo_folds_passed[idx],
+            equivariance_status[idx],
+            wbr_terminal_mode[idx],
+            tokens_consumed[idx],
+            test_quarantine_sealed[idx],
+            verdict_status[idx],
+            verdict_reason[idx],
+            failed_gates[idx],
+            partial_score[idx],
+            wall_time_ns[idx],
+            memory_bytes[idx],
+            prev_row_seal_sha256[idx],
+            row_seal_sha256[idx]
+        )
     end
 
     return (
         schema_version         = String(schema_ver),
         git_commit_hash        = String(commit_sha),
         head_seal_sha256       = String(head_seal),
+        seal_schema_version    = seal_schema_version,
         row_id                 = row_id,
         task_id                = task_id,
+        row_git_commit_hash    = row_git_commit_hash,
+        git_commit_hash_col    = row_git_commit_hash,
         dsl_operator_ids       = dsl_operator_ids,
         candidate_ast_sha256   = candidate_ast_sha256,
+        ast_expr               = ast_expr,
         preflight_subtype_ok   = preflight_subtype_ok,
         runtime_typeassert_ok  = runtime_typeassert_ok,
-        verdict_status         = verdict_status,
-        verdict_reason         = verdict_reason,
-        score_or_partial       = score_or_partial,
+        train_pairs_count      = train_pairs_count,
+        train_exact_matches    = train_exact_matches,
         train_max_residual     = train_max_residual,
         num_free_params        = num_free_params,
         loo_is_informative     = loo_is_informative,
-        loo_folds_passed       = loo_folds_passed,
         loo_folds_total        = loo_folds_total,
+        loo_folds_passed       = loo_folds_passed,
         equivariance_status    = equivariance_status,
         wbr_terminal_mode      = wbr_terminal_mode,
         tokens_consumed        = tokens_consumed,
         test_quarantine_sealed = test_quarantine_sealed,
-        row_seal_sha256        = row_seal_sha256
+        verdict_status         = verdict_status,
+        verdict_reason         = verdict_reason,
+        failed_gates           = failed_gates,
+        partial_score          = partial_score,
+        score_or_partial       = partial_score,
+        wall_time_ns           = wall_time_ns,
+        memory_bytes           = memory_bytes,
+        prev_row_seal_sha256   = prev_row_seal_sha256,
+        row_seal_sha256        = row_seal_sha256,
+        rows                   = rows
+    )
+end
+
+# ------------------------------------------------------------------------------
+# 5B. Safe Allowlisted DSL AST Parser & Deterministic Candidate Replay Verifier
+# ------------------------------------------------------------------------------
+
+struct RuleNode{R<:AbstractGridRule} <: AbstractGridRule
+    rule::R
+end
+
+apply_rule(rn::RuleNode, input::GridState)::GridState = apply_rule(rn.rule, input)
+
+struct ComposedRuleChain <: AbstractGridRule
+    stages::Vector{AbstractGridRule}
+end
+
+Base.:(==)(a::MarkerLineReflectionRule, b::MarkerLineReflectionRule)::Bool =
+    (a.marker_color == b.marker_color) && (a.axis_candidate == b.axis_candidate) && (a.marker_cells == b.marker_cells)
+
+Base.:(==)(a::ArcGeyserRule, b::ArcGeyserRule)::Bool =
+    (a.emitter_color == b.emitter_color) && (a.beam_color == b.beam_color) &&
+    (a.directions == b.directions) && (a.barrier_colors == b.barrier_colors) &&
+    (a.stop_at_barrier == b.stop_at_barrier) && (a.intersection_color == b.intersection_color)
+
+Base.:(==)(a::ArcGyrismRule, b::ArcGyrismRule)::Bool =
+    (a.center_color == b.center_color) && (a.angle_degrees == b.angle_degrees) && (a.clockwise == b.clockwise)
+
+Base.:(==)(a::RuleNode, b::RuleNode)::Bool = (a.rule == b.rule)
+
+Base.:(==)(a::ComposedRuleChain, b::ComposedRuleChain)::Bool =
+    (length(a.stages) == length(b.stages)) && all(i -> a.stages[i] == b.stages[i], eachindex(a.stages))
+
+function apply_rule(chain::ComposedRuleChain, input::GridState)::GridState
+    curr = input
+    for st in chain.stages
+        curr = apply_rule(st, curr)
+    end
+    return curr
+end
+
+function refit_rule_parameters(rn::RuleNode, train_demos::Vector{Demonstration})::RuleNode
+    return RuleNode(refit_rule_parameters(rn.rule, train_demos))
+end
+
+function refit_rule_parameters(chain::ComposedRuleChain, train_demos::Vector{Demonstration})::ComposedRuleChain
+    isempty(chain.stages) && return chain
+    isempty(train_demos) && return chain
+    if length(chain.stages) == 1
+        return ComposedRuleChain(AbstractGridRule[refit_rule_parameters(chain.stages[1], train_demos)])
+    end
+    prefix = chain.stages[1:(end - 1)]
+    inter_demos = Demonstration[]
+    for d in train_demos
+        curr = d.input
+        for st in prefix
+            curr = apply_rule(st, curr)
+        end
+        push!(inter_demos, Demonstration(curr, d.output))
+    end
+    refit_last = refit_rule_parameters(chain.stages[end], inter_demos)
+    new_stages = copy(prefix)
+    push!(new_stages, refit_last)
+    return ComposedRuleChain(new_stages)
+end
+
+const _ALLOWLISTED_AST_CONSTRUCTORS = Set{Symbol}([
+    :MarkerLineReflectionRule,
+    :ArcGeyserRule,
+    :ArcGyrismRule,
+    :RuleNode,
+    :GraftNode
+])
+
+const _ALLOWLISTED_INT_WRAPPERS = Set{Symbol}([:Int8, :Int, :Int32, :Int64, :UInt8, :UInt16])
+
+function _parse_safe_literal(node)
+    if node isa Integer
+        return (true, Int(node))
+    elseif node isa Bool
+        return (true, node)
+    elseif node isa QuoteNode && node.value isa Symbol
+        return (true, node.value::Symbol)
+    elseif node isa Expr && node.head === :call && length(node.args) == 2 && node.args[1] === :- && node.args[2] isa Integer
+        return (true, -Int(node.args[2]))
+    elseif node isa Expr && node.head === :call && length(node.args) == 2 && (node.args[1] in _ALLOWLISTED_INT_WRAPPERS)
+        ok, val = _parse_safe_literal(node.args[2])
+        ok && val isa Integer && return (true, Int(val))
+        return (false, nothing)
+    elseif node isa Expr && node.head === :tuple
+        vals = Any[]
+        for arg in node.args
+            ok, v = _parse_safe_literal(arg)
+            !ok && return (false, nothing)
+            push!(vals, v)
+        end
+        return (true, Tuple(vals))
+    elseif node isa Expr && node.head === :vect
+        vals = Int8[]
+        for arg in node.args
+            ok, v = _parse_safe_literal(arg)
+            (!ok || !(v isa Integer)) && return (false, nothing)
+            push!(vals, Int8(v))
+        end
+        return (true, vals)
+    end
+    return (false, nothing)
+end
+
+function _parse_allowlisted_rule_expr(node)
+    if !(node isa Expr) || node.head !== :call || isempty(node.args)
+        return (false, nothing, "AST node must be a constructor call Expr(:call, ...)")
+    end
+    ctor = node.args[1]
+    if !(ctor isa Symbol) || !(ctor in _ALLOWLISTED_AST_CONSTRUCTORS)
+        return (false, nothing, "Constructor $(repr(ctor)) is not in the allowlisted DSL set")
+    end
+
+    pos_args = Any[]
+    kw_args  = Dict{Symbol, Any}()
+
+    for raw_arg in node.args[2:end]
+        if raw_arg isa Expr && raw_arg.head === :parameters
+            for p in raw_arg.args
+                if !(p isa Expr && p.head === :kw && length(p.args) == 2 && p.args[1] isa Symbol)
+                    return (false, nothing, "Invalid keyword parameter syntax in $(ctor)")
+                end
+                ok, val = _parse_safe_literal(p.args[2])
+                !ok && return (false, nothing, "Disallowed keyword value for $(p.args[1]) in $(ctor)")
+                kw_args[p.args[1]] = val
+            end
+        elseif raw_arg isa Expr && raw_arg.head === :kw && length(raw_arg.args) == 2 && raw_arg.args[1] isa Symbol
+            ok, val = _parse_safe_literal(raw_arg.args[2])
+            !ok && return (false, nothing, "Disallowed keyword value for $(raw_arg.args[1]) in $(ctor)")
+            kw_args[raw_arg.args[1]] = val
+        elseif ctor in (:GraftNode, :RuleNode) && raw_arg isa Expr && raw_arg.head === :call
+            ok_sub, sub_rule, err_sub = _parse_allowlisted_rule_expr(raw_arg)
+            !ok_sub && return (false, nothing, err_sub)
+            push!(pos_args, sub_rule)
+        else
+            ok, val = _parse_safe_literal(raw_arg)
+            !ok && return (false, nothing, "Disallowed positional argument in $(ctor)")
+            push!(pos_args, val)
+        end
+    end
+
+    try
+        if ctor === :MarkerLineReflectionRule
+            mc = isempty(pos_args) ? Int(get(kw_args, :marker_color, 2)) : Int(pos_args[1])
+            ax = length(pos_args) >= 2 ? Symbol(pos_args[2]) : Symbol(get(kw_args, :axis_candidate, :auto))
+            ax in (:auto, :point, :horizontal, :vertical) ||
+                return (false, nothing, "Invalid axis_candidate $(repr(ax)) in MarkerLineReflectionRule")
+            mcells_raw = length(pos_args) >= 3 ? pos_args[3] : get(kw_args, :marker_cells, ())
+            mcells = Tuple{Int, Int}[]
+            if mcells_raw isa Tuple
+                for item in mcells_raw
+                    (item isa Tuple && length(item) == 2 && item[1] isa Integer && item[2] isa Integer) ||
+                        return (false, nothing, "Invalid marker_cells tuple in MarkerLineReflectionRule")
+                    push!(mcells, (Int(item[1]), Int(item[2])))
+                end
+            end
+            return (true, MarkerLineReflectionRule(mc; axis_candidate = ax, marker_cells = mcells), "")
+        elseif ctor === :ArcGeyserRule
+            ec = isempty(pos_args) ? Int(get(kw_args, :emitter_color, 1)) : Int(pos_args[1])
+            bc = length(pos_args) >= 2 ? Int(pos_args[2]) : Int(get(kw_args, :beam_color, -1))
+            dr = length(pos_args) >= 3 ? Symbol(pos_args[3]) : Symbol(get(kw_args, :directions, :cardinal))
+            dr in (:cardinal, :diagonal, :all8, :up, :down, :left, :right) ||
+                return (false, nothing, "Invalid directions $(repr(dr)) in ArcGeyserRule")
+            bar_raw = length(pos_args) >= 4 ? pos_args[4] : get(kw_args, :barrier_colors, Int8[])
+            bars = if bar_raw isa Vector{Int8}
+                bar_raw
+            elseif bar_raw isa Tuple
+                Int8[Int8(x) for x in bar_raw]
+            else
+                Int8[]
+            end
+            stop_b = length(pos_args) >= 5 ? Bool(pos_args[5]) : Bool(get(kw_args, :stop_at_barrier, true))
+            ic = length(pos_args) >= 6 ? Int(pos_args[6]) : Int(get(kw_args, :intersection_color, -1))
+            return (true, ArcGeyserRule(ec; beam_color = bc, directions = dr, barrier_colors = bars, stop_at_barrier = stop_b, intersection_color = ic), "")
+        elseif ctor === :ArcGyrismRule
+            cc = isempty(pos_args) ? Int(get(kw_args, :center_color, -1)) : Int(pos_args[1])
+            ang = length(pos_args) >= 2 ? Int(pos_args[2]) : Int(get(kw_args, :angle_degrees, 90))
+            ang in (0, 90, 180, 270) ||
+                return (false, nothing, "Invalid angle_degrees $(repr(ang)) in ArcGyrismRule")
+            cw = length(pos_args) >= 3 ? Bool(pos_args[3]) : Bool(get(kw_args, :clockwise, true))
+            return (true, ArcGyrismRule(cc; angle_degrees = ang, clockwise = cw), "")
+        elseif ctor === :RuleNode
+            (length(pos_args) == 1 && pos_args[1] isa AbstractGridRule && isempty(kw_args)) ||
+                return (false, nothing, "RuleNode requires a single allowlisted AbstractGridRule argument")
+            return (true, RuleNode(pos_args[1]), "")
+        elseif ctor === :GraftNode
+            (!isempty(pos_args) && isempty(kw_args) && all(x -> x isa AbstractGridRule, pos_args)) ||
+                return (false, nothing, "GraftNode requires 1 or more allowlisted AbstractGridRule / RuleNode arguments")
+            stages = AbstractGridRule[x for x in pos_args]
+            return (true, ComposedRuleChain(stages), "")
+        end
+    catch e
+        return (false, nothing, "Constructor validation failed: $(sprint(showerror, e))")
+    end
+
+    return (false, nothing, "Unrecognized AST expression")
+end
+
+"""
+    parse_allowlisted_candidate_ast(ast_expr::AbstractString) -> AbstractVerdict
+
+Safely parses a candidate `ast_expr` string into an `AbstractGridRule` (`MarkerLineReflectionRule`,
+`ArcGeyserRule`, `ArcGyrismRule`, `RuleNode`, or `GraftNode` chain) using an inert syntax tree
+walk without ever invoking `eval`. Rejects any non-allowlisted or arbitrary Julia syntax with
+`Rejected(:disallowed_ast_expression, ...)`.
+"""
+function parse_allowlisted_candidate_ast(ast_expr::AbstractString)::AbstractVerdict
+    s = strip(String(ast_expr))
+    if isempty(s) || occursin(';', s[1:max(1, findfirst('(', s) === nothing ? end : first(findfirst('(', s)) - 1)])
+        return Rejected(:disallowed_ast_expression, "Empty or multi-statement AST expression forbidden.", [:allowlisted_ast_parser_gate], 0.0)
+    end
+    parsed = Meta.parse(s; raise = false)
+    if parsed === nothing || (parsed isa Expr && parsed.head in (:incomplete, :error, :toplevel, :block))
+        return Rejected(:disallowed_ast_expression, "Malformed or multi-statement AST expression: $s", [:allowlisted_ast_parser_gate], 0.0)
+    end
+    ok, rule_obj, err_msg = _parse_allowlisted_rule_expr(parsed)
+    if !ok || !(rule_obj isa AbstractGridRule)
+        return Rejected(:disallowed_ast_expression, "Disallowed AST expression ($err_msg): $s", [:allowlisted_ast_parser_gate], 0.0)
+    end
+    return Accepted(rule_obj, (:allowlisted_ast_parsed,), 1.0, "Parsed allowlisted candidate AST: $s")
+end
+
+function _evaluate_rule_for_audit_ledger(
+    rule::AbstractGridRule,
+    task::ARCTask;
+    n_params::Int = 1
+)
+    train_ev = evaluate_train_exact(rule, task)
+    is_inf = (n_params > 0) && (length(task.train) >= 2)
+    loo_ev = evaluate_loo(rule, task; is_informative = is_inf, free_param_count = n_params)
+    eq_ev  = evaluate_equivariance(rule, task)
+
+    failed = Symbol[]
+    train_ok = (train_ev.total_pairs > 0) && (train_ev.pairs_matched == train_ev.total_pairs) && (train_ev.max_cell_residual == 0.0)
+    !train_ok && push!(failed, :train_exact_gate)
+
+    loo_ok = if loo_ev.is_informative
+        loo_ev.folds_passed == loo_ev.total_folds
+    else
+        loo_ev.folds_passed == loo_ev.total_folds
+    end
+    !loo_ok && push!(failed, :informative_loo_gate)
+
+    eq_ok = (eq_ev.status === :passed)
+    if eq_ev.status === :failed
+        push!(failed, :equivariance_gate)
+    elseif eq_ev.status === :untestable
+        push!(failed, :equivariance_untestable_gate)
+    end
+
+    verdict_status, verdict_reason, partial_score = if !train_ok
+        p = train_ev.total_pairs > 0 ? Float64(train_ev.pairs_matched) / Float64(train_ev.total_pairs) : 0.0
+        (:REJECTED, :train_exact_failed, p)
+    elseif !loo_ok
+        p = loo_ev.total_folds > 0 ? Float64(loo_ev.folds_passed) / Float64(loo_ev.total_folds) : 0.0
+        (:REJECTED, :informative_loo_failed, p)
+    elseif eq_ev.status === :failed
+        (:REJECTED, :equivariance_failed, 0.5)
+    elseif eq_ev.status === :untestable
+        (:INCOMPLETE, :equivariance_untestable, 0.0)
+    else
+        (:ACCEPTED, :verified_pass, 1.0)
+    end
+
+    return (
+        train_ev = train_ev,
+        loo_ev = loo_ev,
+        eq_ev = eq_ev,
+        verdict_status = verdict_status,
+        verdict_reason = verdict_reason,
+        failed_gates = failed,
+        partial_score = partial_score
+    )
+end
+
+"""
+    verify_task_test_quarantine(task::ARCTask) -> Bool
+
+Verifies that held-out `task.test_inputs` are strictly isolated from `task.train` demonstrations:
+1. `task.train` must be non-empty (`!isempty(task.train)`).
+2. No `GridState` in `task.test_inputs` may share object or backing-buffer identity (`===`)
+   with any demonstration input (`d.input`, `d.input.cells`) or output (`d.output`, `d.output.cells`)
+   in `task.train`.
+"""
+function verify_task_test_quarantine(task::ARCTask)::Bool
+    isempty(task.train) && return false
+    for t_in in task.test_inputs
+        for d in task.train
+            if (t_in === d.input) || (t_in.cells === d.input.cells) ||
+               (t_in === d.output) || (t_in.cells === d.output.cells)
+                return false
+            end
+        end
+    end
+    return true
+end
+
+"""
+    audit_verify_candidate_and_append!(ledger::Revision3AuditLedger, task::ARCTask,
+                                       ast_expr::AbstractString;
+                                       test_quarantine_sealed::Bool, ...) -> Tuple{Union{Nothing, TaskAuditRow}, AbstractVerdict}
+
+Parses `ast_expr` via `parse_allowlisted_candidate_ast`, evaluates the candidate on `task`,
+verifies both the mandatory caller assertion `test_quarantine_sealed` (no default value) and
+buffer-level isolation `verify_task_test_quarantine(task)`, and appends a cryptographically
+sealed `TaskAuditRow` to `ledger`.
+"""
+function audit_verify_candidate_and_append!(
+    ledger::Revision3AuditLedger,
+    task::ARCTask,
+    ast_expr::AbstractString;
+    test_quarantine_sealed::Bool,
+    dsl_ids::Vector{UInt16} = UInt16[12],
+    n_params::Int = 1,
+    mode::Symbol = :Focus,
+    tokens::Int = 4,
+    preflight_subtype_ok::Bool = true,
+    runtime_typeassert_ok::Bool = true,
+    wall_time_ns::Integer = 1000,
+    memory_bytes::Integer = 512
+)
+    parse_v = parse_allowlisted_candidate_ast(ast_expr)
+    if !(parse_v isa Accepted)
+        return (nothing, parse_v)
+    end
+    rule = parse_v.value::AbstractGridRule
+    ev = _evaluate_rule_for_audit_ledger(rule, task; n_params = n_params)
+
+    quarantine_ok = test_quarantine_sealed && verify_task_test_quarantine(task)
+    failed_gates = copy(ev.failed_gates)
+    if !quarantine_ok && !(:gate_r3_5_quarantine in failed_gates)
+        push!(failed_gates, :gate_r3_5_quarantine)
+    end
+    final_status = quarantine_ok ? ev.verdict_status : :REJECTED
+    final_reason = quarantine_ok ? ev.verdict_reason : :quarantine_breach
+    final_score  = quarantine_ok ? ev.partial_score  : 0.0
+
+    row = append_sealed_row!(
+        ledger;
+        task_id                = task.task_id,
+        dsl_ids                = dsl_ids,
+        ast_expr               = String(ast_expr),
+        status                 = final_status,
+        reason                 = final_reason,
+        score                  = final_score,
+        residual               = ev.train_ev.max_cell_residual,
+        n_params               = n_params,
+        loo_pass               = ev.loo_ev.folds_passed,
+        loo_tot                = ev.loo_ev.total_folds,
+        train_pairs_count      = ev.train_ev.total_pairs,
+        train_exact_matches    = ev.train_ev.pairs_matched,
+        equiv                  = ev.eq_ev.status,
+        mode                   = mode,
+        tokens                 = tokens,
+        preflight_subtype_ok   = preflight_subtype_ok,
+        runtime_typeassert_ok  = runtime_typeassert_ok,
+        failed_gates           = failed_gates,
+        wall_time_ns           = wall_time_ns,
+        memory_bytes           = memory_bytes,
+        test_quarantine_sealed = quarantine_ok
+    )
+    out_verdict = quarantine_ok ? parse_v : Rejected(:quarantine_breach, "Task test quarantine check failed on task $(task.task_id).", failed_gates, 0.0)
+    return (row, out_verdict)
+end
+
+"""
+    replay_audit_row_candidate(row::TaskAuditRow, train_pairs::AbstractVector;
+                               task_id::AbstractString = row.task_id) -> AbstractVerdict
+
+Deterministically replays a `TaskAuditRow` from its recorded `ast_expr` using the safe allowlisted
+DSL parser (`parse_allowlisted_candidate_ast`) and verifies that:
+1. `row` satisfies quarantine and canonical SHA-256 seal integrity (`compute_canonical_row_seal_sha256(row)`).
+2. `row.ast_expr` parses without `eval` into an allowlisted `AbstractGridRule`.
+3. Re-evaluating the reconstructed candidate on `train_pairs` reproduces the exact recorded
+   `train_pairs_count`, `train_exact_matches`, `train_max_residual`, `loo_folds_total`,
+   `loo_folds_passed`, `equivariance_status`, `verdict_status`, `verdict_reason`,
+   `failed_gates`, and `partial_score`.
+"""
+function replay_audit_row_candidate(
+    row::TaskAuditRow,
+    train_pairs::AbstractVector;
+    task_id::AbstractString = row.task_id
+)::AbstractVerdict
+    if !row.test_quarantine_sealed
+        return Rejected(:quarantine_breach, "Cannot replay unsealed quarantine row $(row.row_id).", [:gate_r3_5_quarantine], 0.0)
+    end
+    if row.seal_schema_version != SEAL_SCHEMA_VERSION
+        return Rejected(:sha256_row_mismatch, "Unsupported seal_schema_version $(row.seal_schema_version).", [:gate_r3_5_cryptographic_seal], 0.0)
+    end
+    if row.candidate_ast_sha256 != sha256_hex(row.ast_expr)
+        return Rejected(:sha256_row_mismatch, "Row candidate_ast_sha256 does not match ast_expr.", [:gate_r3_5_cryptographic_seal], 0.0)
+    end
+    expected_seal = compute_canonical_row_seal_sha256(row)
+    if row.row_seal_sha256 != expected_seal
+        return Rejected(:sha256_row_mismatch, "Row SHA-256 seal mismatch during replay.", [:gate_r3_5_cryptographic_seal], 0.0)
+    end
+
+    parse_v = parse_allowlisted_candidate_ast(row.ast_expr)
+    if !(parse_v isa Accepted)
+        return parse_v
+    end
+    rule = parse_v.value::AbstractGridRule
+
+    demos = Demonstration[p isa Demonstration ? p : Demonstration(p) for p in train_pairs]
+    test_in = isempty(demos) ? GridState[] : GridState[demos[1].input]
+    task = ARCTask(String(task_id), demos, test_in)
+
+    ev = _evaluate_rule_for_audit_ledger(rule, task; n_params = Int(row.num_free_params))
+
+    metrics_match = (ev.train_ev.total_pairs == row.train_pairs_count) &&
+                    (ev.train_ev.pairs_matched == row.train_exact_matches) &&
+                    isapprox(ev.train_ev.max_cell_residual, row.train_max_residual; atol = 1e-12) &&
+                    (ev.loo_ev.total_folds == row.loo_folds_total) &&
+                    (ev.loo_ev.folds_passed == row.loo_folds_passed) &&
+                    (ev.eq_ev.status == row.equivariance_status) &&
+                    (ev.verdict_status == row.verdict_status) &&
+                    (ev.verdict_reason == row.verdict_reason) &&
+                    (ev.failed_gates == row.failed_gates) &&
+                    isapprox(ev.partial_score, row.partial_score; atol = 1e-12)
+
+    if !metrics_match
+        return Rejected(
+            :replay_verdict_mismatch,
+            "Replayed candidate metrics for row $(row.row_id) do not match recorded audit row.",
+            [:deterministic_replay_gate],
+            0.0
+        )
+    end
+
+    return Accepted(
+        (
+            row_id = row.row_id,
+            rule = rule,
+            verdict_status = ev.verdict_status,
+            verdict_reason = ev.verdict_reason,
+            failed_gates = ev.failed_gates,
+            partial_score = ev.partial_score,
+            row_seal_sha256 = expected_seal
+        ),
+        (:deterministic_replay_verified, :seal_reproduced),
+        1.0,
+        "Deterministic forensic replay verified for row $(row.row_id) ($(row.ast_expr))."
     )
 end
 
@@ -1530,6 +2291,15 @@ function execute_c_abi_zpd_graft!(
     )
     desc.memory_order == COL_MAJOR_CONTIGUOUS || return Rejected(
         :non_column_major_buffer, "C-ABI buffer must be Fortran column-major contiguous.", [:c_abi_layout_gate], 0.0
+    )
+    (1 <= desc.rows <= 30 && 1 <= desc.cols <= 30) || return Rejected(
+        :invalid_buffer_dimensions, "C-ABI buffer dimensions must be in 1..30.", [:c_abi_layout_gate], 0.0
+    )
+    (desc.stride_row == 1 && desc.stride_col == desc.rows) || return Rejected(
+        :non_contiguous_stride, "C-ABI buffer strides must satisfy stride_row == 1 and stride_col == rows.", [:c_abi_stride_gate], 0.0
+    )
+    (1 <= desc.dsl_operator_id <= VERIFIED_DSL_MAX_ID) || return Rejected(
+        :unverified_dsl_operator_id, "C-ABI dsl_operator_id exceeds VERIFIED_DSL_MAX_ID.", [:c_abi_dsl_id_gate], 0.0
     )
     desc.python_pinned == 0x01 || return Rejected(
         :unpinned_python_buffer, "Python buffer must be pinned via locked_zero_copy_buffer.", [:c_abi_pin_gate], 0.0

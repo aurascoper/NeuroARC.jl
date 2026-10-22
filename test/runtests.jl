@@ -6,6 +6,7 @@ using NeuroARC
     include("test_core.jl")
     include("test_transjection.jl")
     include("test_grafting.jl")
+    include("test_ledger_integrity_and_replay.jl")
 
     @testset "Text Cleanliness & Epistemic Invariants Audit" begin
         clean_script = joinpath(@__DIR__, "check_text_clean.py")
