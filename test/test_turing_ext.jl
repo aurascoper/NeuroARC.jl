@@ -342,4 +342,45 @@ using NeuroARC.HyphalGraftingContract: GraftNode, try_graft, try_deep_graft
             @test countA[] == 1 && countB[] == 1 && countC[] == 1
         end
     end
+
+    # ========================================================================
+    # 7. Clean-Room 8-Fold D8 Conjugate Consensus Weave & Split-Color Overlay Weave
+    # ========================================================================
+    @testset "7. Clean-Room 8-Fold D8 Conjugate Consensus Weave & Split-Color Overlay" begin
+        g_rect = [1 2 3; 4 5 6]
+        for k in 0:3, fl in (false, true)
+            op = DihedralOp(k, fl)
+            @test invert_dihedral(apply_dihedral(g_rect, op), op) == g_rect
+        end
+
+        # Split-color overlay weave: shift each non-zero color layer down by 1 row if possible
+        shift_down_fn = function (layer::Matrix{Int})
+            H, W = size(layer)
+            out = zeros(Int, H, W)
+            for j in 1:W, i in 1:(H - 1)
+                if layer[i, j] != 0
+                    out[i + 1, j] = layer[i, j]
+                end
+            end
+            return out
+        end
+
+        g_multi = [1 0 2; 0 3 0; 0 0 0]
+        weaved = execute_split_overlay_weave(shift_down_fn, g_multi; bg_color = 0)
+        @test weaved == [0 0 0; 1 0 2; 0 3 0]
+
+        # 8-Fold D8 Conjugate Consensus Weave:
+        # Suppose we only have a canonical "shift_down_fn", but the task actually shifts RIGHT!
+        # Folding by DihedralOp(k_rot, flip) synthesizes shift_right via g^-1 o shift_down_fn o g!
+        train_shift_right = Tuple{Matrix{Int}, Matrix{Int}}[
+            ([1 0 0; 0 2 0; 0 0 0], [0 1 0; 0 0 2; 0 0 0]),
+            ([0 4 0; 5 0 0; 0 0 0], [0 0 4; 0 5 0; 0 0 0]),
+            ([7 0 0; 0 0 0; 8 0 0], [0 7 0; 0 0 0; 0 8 0]),
+        ]
+        test_shift_right = [3 0 0; 0 6 0; 9 0 0]
+        v_weave = execute_d8_fold_consensus_weave([("shift_down", shift_down_fn)], train_shift_right, test_shift_right)
+        @test v_weave isa Accepted
+        @test v_weave.value.attempt_1 == [0 3 0; 0 0 6; 0 9 0]
+        @test v_weave.value.votes >= 2
+    end
 end

@@ -162,7 +162,10 @@ export
     evaluate_batch_action_adaptive!,
     run_adaptive_test_time_rl!,
     synthesize_zpd_mid_graft!,
-    execute_c_abi_zpd_graft!
+    execute_c_abi_zpd_graft!,
+    invert_dihedral,
+    execute_split_overlay_weave,
+    execute_d8_fold_consensus_weave
 
 include("types.jl")
 include("component.jl")

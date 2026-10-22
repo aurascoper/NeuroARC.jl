@@ -1589,3 +1589,163 @@ function execute_c_abi_zpd_graft!(
         atomic_cas!(lock.state, UInt8(JULIA_BORROWED_READONLY), UInt8(PYTHON_OWNED))
     end
 end
+
+# ------------------------------------------------------------------------------
+# 9. Clean-Room 8-Fold D8 Conjugate Consensus Weave & Split-Color Overlay Weave
+# ------------------------------------------------------------------------------
+
+function apply_dihedral(op::DihedralOp, mat::AbstractMatrix{T})::Matrix{T} where {T<:Integer}
+    out = op.flip ? reverse(Matrix{T}(mat); dims = 2) : Matrix{T}(mat)
+    op.k_rot == 0x01 && (out = rotr90(out, 3))
+    op.k_rot == 0x02 && (out = rot180(out))
+    op.k_rot == 0x03 && (out = rotr90(out, 1))
+    return out
+end
+
+apply_dihedral(mat::AbstractMatrix{T}, op::DihedralOp) where {T<:Integer} = apply_dihedral(op, mat)
+
+"""
+    invert_dihedral(grid::AbstractMatrix, op::DihedralOp) -> Matrix
+
+Applies the exact group inverse `g^-1` of a `DihedralOp(k_rot, flip)` in `D_8`.
+Because `apply_dihedral` applies an optional horizontal reflection `op.flip`
+followed by `op.k_rot` counter-clockwise quarter-turns, its exact inverse
+undoes the rotation first and then undoes the horizontal reflection.
+"""
+function invert_dihedral(grid::AbstractMatrix{T}, op::DihedralOp)::Matrix{T} where {T<:Integer}
+    out = Matrix{T}(grid)
+    op.k_rot == 0x01 && (out = rotr90(out, 1))
+    op.k_rot == 0x02 && (out = rot180(out))
+    op.k_rot == 0x03 && (out = rotr90(out, 3))
+    if op.flip
+        out = reverse(out; dims = 2)
+    end
+    return out
+end
+
+invert_dihedral(op::DihedralOp, grid::AbstractMatrix{T}) where {T<:Integer} = invert_dihedral(grid, op)
+
+"""
+    execute_split_overlay_weave(layer_fn::Function, grid::AbstractMatrix{T};
+                                bg_color::T = zero(T)) -> Matrix{T}
+
+Decomposes `grid` into disjoint per-color sub-layer folds `layer_c` for each
+non-background color `c != bg_color`, applies `layer_fn(layer_c)` independently
+to each fold, and weaves (overlays) all transformed non-background pixels back
+onto a background canvas in canonical ascending color order.
+"""
+function execute_split_overlay_weave(
+    layer_fn::Function,
+    grid::AbstractMatrix{T};
+    bg_color::T = zero(T)
+)::Matrix{T} where {T<:Integer}
+    H, W = size(grid)
+    out = fill(bg_color, H, W)
+    colors = sort!( unique(v for v in grid if v != bg_color) )
+    for c in colors
+        layer = fill(bg_color, H, W)
+        @inbounds for j in 1:W, i in 1:H
+            if grid[i, j] == c
+                layer[i, j] = c
+            end
+        end
+        transformed = layer_fn(layer)
+        tH, tW = size(transformed)
+        r_lim = min(H, tH)
+        c_lim = min(W, tW)
+        @inbounds for j in 1:c_lim, i in 1:r_lim
+            val = transformed[i, j]
+            if val != bg_color
+                out[i, j] = T(val)
+            end
+        end
+    end
+    return out
+end
+
+"""
+    execute_d8_fold_consensus_weave(candidate_fns::AbstractVector,
+                                    train_pairs::Vector{Tuple{Matrix{Int}, Matrix{Int}}},
+                                    test_input::Matrix{Int}) -> AbstractVerdict
+
+Executes an 8-Fold `D_8` Dihedral Conjugate Consensus Weave across `candidate_fns`:
+1. Folds all `train_pairs` and `test_input` across all 8 dihedral symmetries `g in D_8`.
+2. Evaluates each conjugate operator `g^-1 o f o g` across all training pairs (`residual == 0.0`)
+   and verifies Informative Leave-One-Out (LOO) holdout consistency across folds (`n >= 2`).
+3. Weaves all verified predictions by Dihedral Fold Agreement Voting into orthogonal
+   `attempt_1` and `attempt_2` grids (`attempt_2 != attempt_1` whenever multiple distinct
+   hypotheses exist).
+"""
+function execute_d8_fold_consensus_weave(
+    candidate_fns::AbstractVector,
+    train_pairs::Vector{Tuple{Matrix{Int}, Matrix{Int}}},
+    test_input::Matrix{Int}
+)::AbstractVerdict
+    n_train = length(train_pairs)
+    if n_train < 2
+        return Incomplete(:insufficient_loo_folds, "D8 fold consensus weave requires at least 2 training pairs.")
+    end
+
+    d8_ops = [DihedralOp(k, fl) for k in 0:3 for fl in (false, true)]
+    vote_counts = Dict{Matrix{Int}, Int}()
+    first_label = Dict{Matrix{Int}, String}()
+
+    for (fn_idx, fn_entry) in enumerate(candidate_fns)
+        fn_name, fn = fn_entry isa Tuple ? (String(fn_entry[1]), fn_entry[2]) : ("fn_$fn_idx", fn_entry)
+        for op in d8_ops
+            # Verify Informative LOO across all holdout folds under conjugate g^-1 o fn o g
+            loo_passed = true
+            for holdout_idx in 1:n_train
+                for (pair_idx, (inp, exp_out)) in enumerate(train_pairs)
+                    pair_idx == holdout_idx && continue
+                    folded_in  = apply_dihedral(inp, op)
+                    folded_out = fn(folded_in)
+                    unfolded   = invert_dihedral(folded_out, op)
+                    if unfolded != exp_out
+                        loo_passed = false
+                        break
+                    end
+                end
+                !loo_passed && break
+                # Check held-out fold
+                ho_in, ho_exp = train_pairs[holdout_idx]
+                ho_pred = invert_dihedral(fn(apply_dihedral(ho_in, op)), op)
+                if ho_pred != ho_exp
+                    loo_passed = false
+                    break
+                end
+            end
+
+            if loo_passed
+                pred = invert_dihedral(fn(apply_dihedral(test_input, op)), op)
+                vote_counts[pred] = get(vote_counts, pred, 0) + 1
+                if !haskey(first_label, pred)
+                    first_label[pred] = "D8Weave($(fn_name),rot=$(op.k_rot),flip=$(op.flip))"
+                end
+            end
+        end
+    end
+
+    if isempty(vote_counts)
+        return Rejected(
+            :no_d8_fold_consensus,
+            "Zero candidate functions satisfied all D8 conjugate training and LOO folds.",
+            [:d8_conjugate_loo_gate],
+            0.0
+        )
+    end
+
+    ranked = sort!(collect(vote_counts); by = kv -> (-kv[2], first_label[kv[1]]))
+    att1 = ranked[1][1]
+    att2 = length(ranked) >= 2 ? ranked[2][1] : att1
+    best_votes = ranked[1][2]
+    best_expr  = first_label[att1]
+
+    return Accepted(
+        (attempt_1 = att1, attempt_2 = att2, votes = best_votes, expr = best_expr, distinct_candidates = length(ranked)),
+        (:d8_fold_consensus_verified, :informative_loo_verified),
+        1.0,
+        "D8 fold consensus weave verified ($best_votes fold votes, $(length(ranked)) distinct candidate(s)): $best_expr"
+    )
+end
+
