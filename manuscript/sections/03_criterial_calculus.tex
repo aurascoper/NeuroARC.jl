@@ -1,6 +1,6 @@
 \section{Tri-Stage Criterial Architecture and Logic Gates}
 
-Following Peter Tse's neuro-cognitive model of criterial causation \cite{tse2013neural}, neural selection is not modeled as direct physical determinism, but as informational gating over dynamic synaptic weights. In \texttt{NeuroARC.jl}, this process is operationalized as a tri-stage temporal architecture:
+Following Peter Tse's neuro-cognitive model of criterial causation \cite{tse2013neural}, neural selection is modeled as informational gating over dynamic synaptic weights. In \texttt{NeuroARC.jl}, this process is operationalized as a tri-stage temporal architecture:
 
 \begin{enumerate}
   \item \textbf{Stage $t_1$ (Setting of Informational Criteria)}: The controller configures acceptance thresholds $\boldsymbol{\tau}$, projection operators $\Pi_{\mathcal{S}}$, and assigns initial computational token budgets based on generative entrenchment \cite{wimsatt1986developmental}.
@@ -14,13 +14,30 @@ Following Peter Tse's neuro-cognitive model of criterial causation \cite{tse2013
     \item \textbf{K-of-N Gate}: $G_{k/N}(x) = \mathbf{1}\left\{\sum_{m=1}^N \mathbf{1}\{c_m(x) \ge \tau_m\} \ge k\right\}$
   \end{itemize}
   \item \textbf{Stage $t_3$ (Downward Empowerment or Extinction)}:
+  \sloppy
   \begin{itemize}
-    \item When criteria are satisfied, the candidate is projected onto the invariant subspace $\Pi_{\mathcal{S}}(x)$ and rewarded with downstream compute allocation via an algebraic verdict\\
+    \item When criteria are satisfied, the candidate is projected onto the invariant subspace $\Pi_{\mathcal{S}}(x)$ and rewarded with downstream compute allocation via a constructive witness verdict\\
     \texttt{Accepted(value, salient\_features, score, detail)}.
-    \item When criteria fail, execution is halted immediately with zero downstream budget consumption, emitting a typed diagnostic verdict\\
-    \texttt{Rejected(reason, detail, failed\_gates, partial\_score)}.
-    \item When prerequisites or tools are unavailable, the system emits an auditable verdict \texttt{Incomplete(reason, detail)}, preventing silent fallback.
+    \item When criteria fail, execution is halted immediately with zero downstream budget consumption, emitting a re-checkable refutation certificate\\
+    \texttt{Rejected(reason, detail, failed\_gate\_indices, failed\_gates,}\\
+    \texttt{partial\_score, violation\_certificates)}, where each certificate records\\
+    \texttt{(gate\_name, pair\_index, cell\_residual, violation\_coord)}.
+    \item When prerequisites or symmetry anchors are untestable, the system emits an auditable verdict\\
+    \texttt{Incomplete(reason, detail, missing\_prerequisites)}, recording the specific missing prerequisite symbols without silent fallback.
   \end{itemize}
 \end{enumerate}
+
+\subsection{Operational Three-Way Policy versus Formal Constructive Proof Calculus}
+\sloppy
+Because intuitionistic logic admits no finite-valued truth-table semantics \cite{godel1932intuitionistischen}, we explicitly distinguish an \textbf{operational three-way verification policy} (\texttt{Accepted}, \texttt{Rejected}, and \texttt{Incomplete} status enumeration at the \texttt{CriterialVerdict} layer) from a \textbf{formally constructive proof calculus} implemented as \texttt{EvidenceStatus} with \texttt{Witness\{T, C\}} ($C <: \texttt{AbstractProofTerm}$), \texttt{Refutation\{T, C\}} ($C <: \texttt{AbstractRefutationTerm}$), and \texttt{Unresolved\{T\}}. An unguarded \texttt{certificate::Any} field would allow \texttt{Witness(prop, nothing)} or \texttt{Witness(prop, true)} to masquerade as a proof term. Instead, \texttt{Witness\{T, C\}} and \texttt{Refutation\{T, C\}} constrain $C <: \texttt{AbstractCertificate}$ and invoke \texttt{check\_proof\_term} and \texttt{check\_refutation\_term} inside their inner constructors at instantiation time. Generic fallback methods \texttt{check\_proof\_term(::Any, ::Any) = false} and \texttt{check\_refutation\_term(::Any, ::Any) = false} fail closed on any unverified certificate subtype. For \texttt{StructuredProofTerm} and \texttt{StructuredRefutationTerm}, the constructor check verifies the structural hash seal, proposition alignment, and internal consistency of the recorded fields (such as measured value versus threshold and margin arithmetic for threshold and bandpass gates, subtype relation $\texttt{out\_type} <: \texttt{in\_type}$ for subtype gates, recursive child-certificate validity for composite gates, and an optional \texttt{recheck} closure when supplied by \texttt{evaluate\_gate\_constructive}), while \texttt{Unresolved\{T\}} requires non-empty \texttt{missing\_prerequisites} symbols when neither certificate is available. Constructive gate evaluation (\texttt{evaluate\_gate\_constructive}) and Brouwer-Heyting-Kolmogorov (BHK) combinators (\texttt{conjunction\_evidence} and \texttt{disjunction\_evidence}) enforce the strict epistemic invariant that an unavailable prerequisite yields \texttt{Unresolved\{T\}} and is never coerced into a \texttt{Refutation\{T\}} counterexample.
+
+To ground continuous-to-discrete sensitivity and constructive evidence semantics without ambiguity, we contrast three distinct mathematical universes for smooth or nilpotent infinitesimals and constructive logic:
+\begin{enumerate}
+  \item \textbf{Synthetic Differential Geometry (SDG) in Smooth Toposes}: Moerdijk and Reyes \cite{moerdijk1991models} construct intuitionistic topos models governed by the Kock-Lawvere microaffineness axiom \cite{bell2008primer,moerdijk1991models}, where every function on the nilsquare infinitesimal object $D = \{d \in R : d^2 = 0\}$ is uniquely affine.
+  \item \textbf{Classical-Modal Interpretation of Smooth Infinitesimal Analysis}: Hellman and Shapiro \cite{hellman2025classical} formulate a classical-modal reinterpretation of nilsquare identity, demonstrating how validity depends critically on internal versus external quantifier scope.
+  \item \textbf{Classical-Logic Fermat Reals}: Giordano \cite{giordano2010infinitesimals} develops the ring of Fermat reals within strictly classical logic, proving that nilpotent infinitesimals do not automatically force intuitionistic logic and making the choice of mathematical universe mathematically consequential.
+\end{enumerate}
+Crucially, the informal slogan that smooth infinitesimals are ``things indistinguishable from zero'' is not a substitute for the Kock-Lawvere axioms, exact internal logic ($\neg\neg(d=0)$ without $d=0$), and explicit quantifier scope. Finally, to prevent epistemic inflation between abstract mathematical interfaces and empirical results, \texttt{NeuroARC.jl} enforces a four-level scientific achievement taxonomy (\texttt{AchievementLevel}): \textit{implemented interface} (\texttt{IMPLEMENTED\_INTERFACE}), \textit{verified numerical component} (\texttt{VERIFIED\_NUMERICAL\_COMPONENT}), \textit{validated physical model} (\texttt{VALIDATED\_PHYSICAL\_MODEL}), and \textit{experimentally supported empirical claim} (\texttt{EXPERIMENTALLY\_SUPPORTED\_CLAIM}).
+\fussy
 
 Furthermore, the pedagogical scaffolding loop of Wood, Bruner, and Ross \cite{wood1976role} is instantiated as a controller across six tutorial functions (Recruitment, Reduction in Degrees of Freedom, Direction Maintenance, Marking Critical Features, Frustration Control, and Demonstration), managing state transitions across \texttt{Focus}, \texttt{Frustration}, and \texttt{Panic} modes.

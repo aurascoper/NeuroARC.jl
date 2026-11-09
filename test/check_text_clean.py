@@ -21,7 +21,11 @@ def check_text_cleanliness(root_dir):
         "proto" + "bacter",
         "radio" + "gyrism",
         "sobolev" + " " + "chemostatin",
-        "filter-empowered" + " " + "gyre"
+        "filter-empowered" + " " + "gyre",
+        "geo" + "carpic",
+        "arc" + "etectonics",
+        "subterranean" + " " + "julia",
+        "depolarize_" + "membrane"
     ]
 
     skip_dirs = {".git", "__pycache__", ".pytest_cache", ".ruff_cache", "build"}

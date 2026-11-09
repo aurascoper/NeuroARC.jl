@@ -1,23 +1,20 @@
 \section{Discussion, Competition Governance, and Repository Lifecycle}
 
-A central operational question addressed in this milestone is the release cadence for \texttt{NeuroARC.jl}: specifically, whether the codebase should be published immediately to an open repository.
+A central operational question addressed in this milestone is the relationship between our Python competition submission notebooks (Track 1) and the standalone \texttt{NeuroARC.jl} reference package (Track 3).
 
-\subsection{Rationale for Initial Private Repository Status}
-We conclude that \texttt{NeuroARC.jl} must be initialized and maintained as a private repository prior to broader public release, driven by three strategic constraints:
+\subsection{Empirical Context and Decontamination Governance}
+Three engineering constraints shaped the lifecycle from internal development to open-source release:
 
 \begin{enumerate}
-  \item \textbf{Audit and Specification Invariants}: The anti-solipsism framework, the deterministic verifier threat model, and the GLMM calibration protocol are currently held at specification status pending formal independent review. Releasing provisional thresholds and telemetry schemas prematurely exposes work before formal audit gates close.
-  \item \textbf{Kaggle ARC-AGI-2 Competition Governance}: The active competition cycle imposes strict requirements on candidate generators, decontaminated DSL primitive libraries (comprising 557 verified operators), and reflexive recurrence modules. Maintaining private status protects submission provenance, prevents licensing ambiguities, and prevents accidental data contamination.
-  \item \textbf{Upstream Git Read-Only Boundary}: Upstream modules in\\
-  \texttt{arc-agi-2-cpu-kaggle-modules} remain strictly read-only. Decoupling the cross-language memory boundary between Python and Julia must precede any public interface exposure.
+  \item \textbf{Audit and Specification Invariants}: The anti-solipsism framework, the deterministic verifier threat model, and the constructive certificate calculus separate verified numerical components (\texttt{VERIFIED\_NUMERICAL\_COMPONENT}) from unverified empirical hypotheses.
+  \item \textbf{Kaggle ARC-AGI-2 Decontamination Governance}: In our audit of the upstream Python \texttt{dsl.py} module (164 top-level \texttt{FunctionDef} nodes), 73 definitions (72 unique runtime keys due to a duplicate \texttt{solve\_b9e38dc0} definition) were task-keyed \texttt{solve\_<8hex>} lookup tables rather than generalizable operators, leaving 91 reusable grid helpers. Exact-match regex stripping in the submitted clean run removed 71 runtime keys and leaked one renamed alias (\texttt{solve\_9385bd28\_generalized}) through a default-argument binding, collapsing accuracy from 39.17 on the public evaluation set (scored locally) to 0.00 on the hidden leaderboard. That failure motivated the constructive verification gates formalized here.
+  \item \textbf{Cross-Language Boundary between Python and Julia}: The Kaggle ARC-AGI-2 notebooks run in Python on Kaggle's offline four-L4 GPU environment within the twelve-hour wall-clock limit (reaching 31.94 and 29.72 under our triple-pass NVARC test-time training schedule, and 30.28 on S1, 28.47 on the triangulated replicate, and also 28.47 on S5 with the Python sidecar). \texttt{NeuroARC.jl} is the standalone Julia formalization of the sidecar's verification and typed-composition contract rather than the runtime engine executed inside the Kaggle submission kernels.
 \end{enumerate}
 
-\subsection{Prerequisites for Public Release}
-The transition from private to public repository status is scheduled upon completion of three verifiable gates:
+\subsection{Open-Source Verification and Reproducibility}
+For the ARC Prize 2026 Paper Track release, the repository is packaged as a clean, zero-dependency Julia codebase verified by:
 \begin{enumerate}
-  \item Formal completion of the Donald Hoffman outreach cycle on the six-page foundational draft.
-  \item Execution and cryptographic sealing of the Revision 3 anti-solipsism audit gates and telemetry logs (\texttt{task\_audit\_table.parquet}).
-  \item Freezing and public evaluation of the final Kaggle competition submission notebook.
+  \item Deterministic execution of all 652 unit-test assertions via \texttt{Pkg.test()} across core types, constructive proof certificates, preflight grafting contracts, and text-cleanliness invariants.
+  \item Automated Graphviz and Tectonic compilation of the manuscript and architectural diagrams (\texttt{Figure B1} and \texttt{Figure B2}).
+  \item Public release alongside the companion Kaggle submission notebooks so reviewers can inspect both the empirical Python test-time training schedule and the formal Julia verification contract.
 \end{enumerate}
-
-Maintaining an internal private repository provides immediate benefits, including immutable Git commit hashes for academic citations (Paper B), secure continuous integration, and reproducible version control without compromising governance invariants.

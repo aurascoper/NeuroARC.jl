@@ -7,11 +7,28 @@ Before any candidate is admitted into the verified execution pool, it must satis
 \begin{enumerate}
   \item \textbf{Train Exact Reconstruction}: The candidate transformation must reconstruct 100\% of cells across all training demonstration output grids ($Y_i = f(X_i)$) with maximum cell residual equal to 0.0.
   \item \textbf{Informative Leave-One-Out (LOO) Evaluation}: Cross-validation across demonstration pairs is evaluated to detect parameter overfitting. When a rule contains free parameters, LOO folds are marked informative; parameter-free macros require verified cross-task firing to avoid single-task memorization.
-  \item \textbf{Equivariance Gating}: Where task semantics exhibit geometric invariance, the candidate must commute with the dihedral group $D_8$ and background-preserving color permutations. If a candidate depends on directional or absolute spatial coordinates, equivariance is flagged as \texttt{untestable}, leading to an explicit \texttt{Incomplete} evaluation rather than a false positive certification.
+  \item \textbf{Equivariance Gating}: Where task semantics exhibit geometric invariance, the candidate must commute with the eight symmetries of the square ($D_4$, order 8) and background-preserving color permutations. If a candidate depends on directional or absolute spatial coordinates, equivariance is flagged as \texttt{untestable}, leading to an explicit \texttt{Incomplete} evaluation rather than a false positive certification.
 \end{enumerate}
+\sloppy
+The package exports seven \texttt{AbstractGridRule} subtypes: three rules with complete execution methods (\texttt{MarkerLineReflectionRule}, \texttt{ArcGeyserRule}, and \texttt{ArcGyrismRule}) and four typed extension stubs (\texttt{GeodesicBarrierFloodRule}, \texttt{CorridorWireTraceRule}, \texttt{PeriodicStampWithPriorityRule}, and \texttt{ExactCoverPolyominoRule}) that throw \texttt{RuleNotImplementedError} and evaluate to \texttt{:incomplete} under \texttt{verify\_candidate} rather than being silently treated as training mismatches.
+\fussy
 
-\subsection{Epistemic Limits of Verification}
+\subsection{Epistemic Limits of Verification and Scientific Achievement Taxonomy}
+\sloppy
 The verifier certifies compliance with observed demonstration contracts and structural invariants; it does not and cannot certify ground-truth accuracy on held-out test grids. Post-run test evaluation is conducted strictly through isolated scoring harnesses against quarantined held-out labels after solver processes terminate.
+
+To enforce strict alignment between constructive proof terms and scientific claims, the verifier separates the operational status policy (\texttt{Accepted}, \texttt{Rejected}, \texttt{Incomplete}) from the formal constructive evidence hierarchy (\texttt{EvidenceStatus}: \texttt{Witness\{T\}}, \texttt{Refutation\{T\}}, and \texttt{Unresolved\{T\}}). Furthermore, \texttt{ScientificClaimAudit\{T\}} and \texttt{audit\_scientific\_claim\_boundary} audit every scientific proposition against four ordered achievement levels:
+\begin{enumerate}
+  \item \textbf{Implemented Interface} (\texttt{IMPLEMENTED\_INTERFACE}): Typed structural signatures and compositional contracts are defined and type-checked.
+  \item \textbf{Verified Numerical Component} (\texttt{VERIFIED\_NUMERICAL\_COMPONENT}): Algorithmic and numerical invariants pass deterministic unit and leave-one-out verification suites with re-checkable witness certificates.
+  \item \textbf{Validated Physical Model} (\texttt{VALIDATED\_PHYSICAL\_MODEL}): Physical or dynamical predictions are validated against independent reference benchmarks.
+  \item \textbf{Experimentally Supported Empirical Claim} (\texttt{EXPERIMENTALLY\_SUPPORTED\_CLAIM}): Empirical claims are supported by direct experimental replication and held-out benchmark evaluation.
+\end{enumerate}
+If a proposition's \texttt{claimed\_level} exceeds its \texttt{achieved\_level} or its underlying evidence is a \texttt{Refutation\{T\}}, \texttt{audit\_scientific\_claim\_boundary} immediately emits a \texttt{Refutation\{T\}} countercertificate. Conversely, if experimental prerequisites or independent verification records are not yet available, it emits \texttt{Unresolved\{T\}} recording the missing prerequisite symbols without coercing absent prerequisites into a refutation.
+\fussy
+
+\subsection{Structural Analogy: Symmetry Breaking and Single-Compartment Quarantine}
+The verifier's gate ordering is structurally analogous to directional recoil detectors in particle astrophysics \cite{drukier2014new}, where enforcing geometric symmetry against a reference axis reduces the sample size required for background rejection across small event counts. Analogously, our leave-one-out and equivariance gates isolate each candidate evaluation inside a single compartment and record deterministic hash receipts so rejected or incomplete candidates never leak into downstream search.
 
 \begin{figure}[htbp]
   \centering

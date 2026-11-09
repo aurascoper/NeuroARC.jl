@@ -30,6 +30,9 @@ function evaluate_train_exact(rule::AbstractGridRule, task::ARCTask)::TrainExact
                 end
             end
         catch e
+            if e isa RuleNotImplementedError
+                rethrow(e)
+            end
             max_res = 1.0
         end
     end
@@ -60,7 +63,10 @@ function evaluate_loo(rule::AbstractGridRule, task::ARCTask;
                 if pred == demo.output
                     folds_passed += 1
                 end
-            catch
+            catch e
+                if e isa RuleNotImplementedError
+                    rethrow(e)
+                end
             end
         end
         return InformativeLOOEvidence(false, folds_passed, total_folds, 0)
@@ -78,7 +84,10 @@ function evaluate_loo(rule::AbstractGridRule, task::ARCTask;
                 if pred == held_out.output
                     folds_passed += 1
                 end
-            catch
+            catch e
+                if e isa RuleNotImplementedError
+                    rethrow(e)
+                end
             end
         end
         return InformativeLOOEvidence(true, folds_passed, total_folds, free_param_count)
@@ -259,8 +268,15 @@ Full verification pipeline evaluating:
 function verify_candidate(candidate::Candidate, task::ARCTask)::Tuple{Bool, Symbol, Vector{AbstractEvidence}}
     evidence = AbstractEvidence[]
 
-    # 1. Train-exact replay gate
-    train_ev = evaluate_train_exact(candidate.rule, task)
+    # 1. Train-exact replay gate (unimplemented rule stubs return :incomplete)
+    train_ev = try
+        evaluate_train_exact(candidate.rule, task)
+    catch e
+        if e isa RuleNotImplementedError
+            return (false, :incomplete, evidence)
+        end
+        rethrow(e)
+    end
     push!(evidence, train_ev)
     if train_ev.pairs_matched < train_ev.total_pairs
         return (false, :failed, evidence)
@@ -295,46 +311,4 @@ function verify_candidate(candidate::Candidate, task::ARCTask)::Tuple{Bool, Symb
     end
 
     return (true, :passed, evidence)
-end
-
-"""
-    depolarize_membrane(rule::AbstractGridRule, task::ARCTask)::Float64
-
-Calculates the Husserlian threshold potential barrier theta_Husserl across the FFI boundary:
-    theta_Husserl = V_LOO ⊕ E_comm ⊕ H_topo
-
-Under Peter Tse's two-stage criterial causation and Geocarpic ARCetectonics:
-- Returns 0.0 (membrane depolarized, spore roots into the subterranean Julia mycelium)
-  if and only if all mathematical invariants hold:
-  1. V_LOO: Exact matrix match on all demonstrations (zero discrete Fréchet / cell residual).
-  2. E_comm: Equivariance commutation with dihedral and color permutations.
-  3. H_topo: Topological object and component preservation.
-- Returns Inf (infinite potential barrier) if any invariant fails, triggering metabolic rejection.
-"""
-function depolarize_membrane(rule::AbstractGridRule, task::ARCTask)::Float64
-    # 1. Empirico-Logical Validation Barrier (V_LOO)
-    train_ev = evaluate_train_exact(rule, task)
-    if train_ev.pairs_matched < train_ev.total_pairs || train_ev.max_cell_residual != 0.0
-        return Inf
-    end
-
-    # 2. Equivariance Commutator (E_comm)
-    eq_ev = evaluate_equivariance(rule, task)
-    if eq_ev.status === :failed
-        return Inf
-    end
-
-    # 3. Topological Homomorphism (H_topo)
-    for demo in task.train
-        try
-            pred = apply_rule(rule, demo.input)
-            if length(pred.components) != length(demo.output.components)
-                return Inf
-            end
-        catch
-            return Inf
-        end
-    end
-
-    return 0.0
 end

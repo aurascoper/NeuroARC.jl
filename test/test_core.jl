@@ -401,19 +401,25 @@ using NeuroARC
         # Parallax intersection node at (3, 3) where horizontal and vertical rays cross
         @test res_parallax[3, 3] == Int8(4)
 
-        # 8. Geocarpic ARCetectonics: depolarize_membrane Husserlian threshold test
-        # Valid task where marker point reflection perfectly solves demonstration
+        # 8. Unimplemented rule stubs propagate RuleNotImplementedError and yield :incomplete
         t_in = zeros(Int8, 5, 5); t_in[3, 3] = Int8(2); t_in[2, 3] = Int8(1)
         t_out = copy(t_in); t_out[4, 3] = Int8(1)
-        task_geo = ARCTask("geo_task", [Demonstration(GridState(t_in), GridState(t_out))], [GridState(t_in)])
+        task_stub = ARCTask("stub_task", [Demonstration(GridState(t_in), GridState(t_out))], [GridState(t_in)])
+        stub_prov = ProvenanceReceipt(:symbolic_dsl, "stub_cand", 0, 100, 2)
 
-        # Correct rule depolarizes membrane to 0.0
-        good_rule = MarkerLineReflectionRule(2; axis_candidate=:point)
-        @test depolarize_membrane(good_rule, task_geo) == 0.0
-
-        # Wrong rule violates invariant, membrane potential spikes to Inf
-        bad_rule = ArcGeyserRule(1; beam_color=5)
-        @test isinf(depolarize_membrane(bad_rule, task_geo))
+        for stub_rule in (
+            GeodesicBarrierFloodRule(),
+            CorridorWireTraceRule(),
+            PeriodicStampWithPriorityRule(),
+            ExactCoverPolyominoRule()
+        )
+            @test_throws RuleNotImplementedError evaluate_train_exact(stub_rule, task_stub)
+            @test_throws RuleNotImplementedError evaluate_loo(stub_rule, task_stub)
+            passed_stub, status_stub, ev_stub = verify_candidate(Candidate(stub_rule, GridState[], AbstractEvidence[], stub_prov), task_stub)
+            @test passed_stub == false
+            @test status_stub == :incomplete
+            @test isempty(ev_stub)
+        end
     end
 
 end

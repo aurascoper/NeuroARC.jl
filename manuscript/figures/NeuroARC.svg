@@ -73,7 +73,7 @@
   <!-- Node A -->
   <rect x="60" y="346" width="220" height="80" rx="10" fill="#ffffff" stroke="#3186ff" stroke-width="1.5"/>
   <text x="170" y="370" text-anchor="middle" font-size="11" font-weight="600" fill="#000000">Node A :: GraftNode{In_A, Out_A}</text>
-  <text x="170" y="388" text-anchor="middle" font-size="10" font-family="monospace" fill="#555555">PolynominoGraph -&gt; ColorMappedGrid</text>
+  <text x="170" y="388" text-anchor="middle" font-size="10" font-family="monospace" fill="#555555">PolyominoGraph -&gt; ColorMappedGrid</text>
   <text x="170" y="406" text-anchor="middle" font-size="9" font-style="italic" fill="#727676">A.f : implementation</text>
 
   <!-- Preflight arrow A to B -->
@@ -143,8 +143,8 @@
   <text x="1090" y="638" text-anchor="middle" font-size="10" font-family="monospace" fill="#727676">Pi_S(x)</text>
 
   <!-- Separator + outcomes -->
-  <line x1="60" y1="652" x2="1160" y2="652" stroke="#e3e3e3" stroke-width="1" stroke-dasharray="3 3"/>
-  <text x="1156" y="646" text-anchor="end" font-size="10" font-style="italic" fill="#727676">possible verdicts</text>
+  <line x1="60" y1="652" x2="1010" y2="652" stroke="#e3e3e3" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="1010" y="646" text-anchor="end" font-size="10" font-style="italic" fill="#727676">possible verdicts</text>
 
   <!-- Accepted -->
   <rect x="60" y="666" width="340" height="44" rx="8" fill="#daf9d4" stroke="#008052" stroke-width="1"/>
@@ -166,5 +166,5 @@
   <text x="600" y="776" text-anchor="middle" font-size="11" font-style="italic" fill="#727676">It does not certify ground-truth accuracy on held-out test grids.</text>
 
   <!-- Footer tag -->
-  <text x="1180" y="796" text-anchor="end" font-size="9" fill="#a0a0a0">NeuroARC.jl : v0.1.0 : draft 2026-10</text>
+  <text x="1180" y="796" text-anchor="end" font-size="9" fill="#a0a0a0">NeuroARC.jl : v0.1.0 : 2026-11</text>
 </svg>
